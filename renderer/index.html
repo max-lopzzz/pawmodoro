@@ -11,8 +11,8 @@
   <div class="titlebar">
     <div class="titlebar-drag"></div>
     <div class="titlebar-controls">
-      <button class="btn-minimize" id="btn-minimize">&#8212;</button>
-      <button class="btn-close" id="btn-close">&#215;</button>
+      <button class="btn-minimize" id="btn-minimize" aria-label="Minimize window">&#8212;</button>
+      <button class="btn-close" id="btn-close" aria-label="Close window">&#215;</button>
     </div>
   </div>
 
@@ -29,7 +29,7 @@
     </div>
   </main>
 
-  <button class="btn-settings" id="btn-settings">&#9881;</button>
+  <button class="btn-settings" id="btn-settings" aria-label="Open settings">&#9881;</button>
 
   <div class="overlay-celebration" id="overlay-celebration">
     <img class="cat-celebration" id="cat-celebration" alt="celebration cat" src="">
@@ -38,13 +38,17 @@
   <div class="settings-panel" id="settings-panel">
     <div class="settings-header">
       <span class="settings-title">Settings</span>
-      <button class="btn-settings-close" id="btn-settings-close">&#215;</button>
+      <button class="btn-settings-close" id="btn-settings-close" aria-label="Close settings">&#215;</button>
     </div>
     <div class="settings-body">
-      <label>Work (min)<input type="number" id="input-work" min="1" max="120" value="25"></label>
-      <label>Short break (min)<input type="number" id="input-short-break" min="1" max="60" value="5"></label>
-      <label>Long break (min)<input type="number" id="input-long-break" min="1" max="120" value="30"></label>
-      <label>Sessions before long break<input type="number" id="input-sessions" min="1" max="10" value="4"></label>
+      <label for="input-work">Work (min)</label>
+      <input type="number" id="input-work" min="1" max="120" value="25">
+      <label for="input-short-break">Short break (min)</label>
+      <input type="number" id="input-short-break" min="1" max="60" value="5">
+      <label for="input-long-break">Long break (min)</label>
+      <input type="number" id="input-long-break" min="1" max="120" value="30">
+      <label for="input-sessions">Sessions before long break</label>
+      <input type="number" id="input-sessions" min="1" max="10" value="4">
     </div>
     <button class="btn-save" id="btn-save">Save</button>
   </div>
