@@ -1,0 +1,235 @@
+// ── Config persistence ─────────────────────────
+
+function loadConfig() {
+  return {
+    work: parseInt(localStorage.getItem('cfg-work') || '25', 10),
+    shortBreak: parseInt(localStorage.getItem('cfg-shortBreak') || '5', 10),
+    longBreak: parseInt(localStorage.getItem('cfg-longBreak') || '30', 10),
+    sessionsBeforeLongBreak: parseInt(localStorage.getItem('cfg-sessions') || '4', 10)
+  }
+}
+
+function saveConfig(config) {
+  localStorage.setItem('cfg-work', config.work)
+  localStorage.setItem('cfg-shortBreak', config.shortBreak)
+  localStorage.setItem('cfg-longBreak', config.longBreak)
+  localStorage.setItem('cfg-sessions', config.sessionsBeforeLongBreak)
+}
+
+// ── State ──────────────────────────────────────
+
+var config = loadConfig()
+
+var state = {
+  timerState: 'idle',       // idle | running | paused | complete
+  sessionType: 'work',      // work | short-break | long-break
+  secondsLeft: config.work * 60,
+  completedWork: 0,
+  interval: null
+}
+
+// ── DOM refs ───────────────────────────────────
+
+var elTimer        = document.getElementById('timer-display')
+var elLabel        = document.getElementById('session-label')
+var elCatAmbient   = document.getElementById('cat-ambient')
+var elDots         = document.getElementById('session-dots')
+var elBtnStart     = document.getElementById('btn-start')
+var elBtnReset     = document.getElementById('btn-reset')
+var elBtnSettings  = document.getElementById('btn-settings')
+var elBtnSetClose  = document.getElementById('btn-settings-close')
+var elBtnSave      = document.getElementById('btn-save')
+var elBtnMinimize  = document.getElementById('btn-minimize')
+var elBtnClose     = document.getElementById('btn-close')
+var elOverlay      = document.getElementById('overlay-celebration')
+var elCatCelebr    = document.getElementById('cat-celebration')
+var elSettingsPanel = document.getElementById('settings-panel')
+var elInputWork    = document.getElementById('input-work')
+var elInputShort   = document.getElementById('input-short-break')
+var elInputLong    = document.getElementById('input-long-break')
+var elInputSessions = document.getElementById('input-sessions')
+
+// ── Render ─────────────────────────────────────
+
+function render() {
+  // Timer text
+  elTimer.textContent = formatTime(state.secondsLeft)
+
+  // Session label
+  var labels = { work: 'Focus', 'short-break': 'Short Break', 'long-break': 'Long Break' }
+  elLabel.textContent = labels[state.sessionType]
+
+  // Accent color
+  var accent = getAccentColor(state.sessionType)
+  document.documentElement.style.setProperty('--accent', accent)
+  elBtnStart.style.background = accent
+
+  // Start/Pause button label
+  elBtnStart.textContent = state.timerState === 'running' ? 'Pause' : 'Start'
+
+  // Ambient cat GIF
+  var gifFile = getAmbientGif(state.sessionType, state.timerState)
+  var newSrc = '../assets/' + gifFile
+  if (elCatAmbient.getAttribute('src') !== newSrc) {
+    elCatAmbient.src = newSrc
+  }
+
+  // Session dots
+  var n = config.sessionsBeforeLongBreak
+  var completed = state.completedWork % n
+  elDots.innerHTML = ''
+  for (var i = 0; i < n; i++) {
+    var dot = document.createElement('span')
+    dot.className = 'dot' + (i < completed ? ' filled' : '')
+    elDots.appendChild(dot)
+  }
+}
+
+// ── Chime ──────────────────────────────────────
+
+function playChime() {
+  try {
+    var ctx = new AudioContext()
+    function playNote(freq, startTime, duration) {
+      var osc = ctx.createOscillator()
+      var gain = ctx.createGain()
+      osc.connect(gain)
+      gain.connect(ctx.destination)
+      osc.frequency.value = freq
+      osc.type = 'sine'
+      gain.gain.setValueAtTime(0, startTime)
+      gain.gain.linearRampToValueAtTime(0.3, startTime + 0.05)
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration)
+      osc.start(startTime)
+      osc.stop(startTime + duration)
+    }
+    playNote(880, ctx.currentTime, 0.5)
+    playNote(660, ctx.currentTime + 0.25, 0.6)
+  } catch (e) {
+    // AudioContext unavailable — silently skip
+  }
+}
+
+// ── Session complete ───────────────────────────
+
+function onSessionComplete() {
+  clearInterval(state.interval)
+  state.interval = null
+  state.timerState = 'complete'
+
+  if (state.sessionType === 'work') {
+    state.completedWork += 1
+  }
+
+  playChime()
+  showCelebration()
+}
+
+function showCelebration() {
+  var gif = pickCelebrationGif()
+  elCatCelebr.src = '../assets/' + gif
+  elOverlay.classList.add('visible')
+
+  var timeout = setTimeout(hideCelebration, 3500)
+
+  function hideCelebration() {
+    clearTimeout(timeout)
+    elOverlay.classList.remove('visible')
+    elOverlay.removeEventListener('click', hideCelebration)
+    advanceSession()
+  }
+
+  elOverlay.addEventListener('click', hideCelebration, { once: true })
+}
+
+function advanceSession() {
+  var next = getNextSession(state.sessionType, state.completedWork, config)
+  state.sessionType = next.type
+  state.secondsLeft = next.duration
+  state.timerState = 'idle'
+  render()
+}
+
+// ── Timer tick ─────────────────────────────────
+
+function tick() {
+  if (state.secondsLeft <= 0) {
+    onSessionComplete()
+    render()
+    return
+  }
+  state.secondsLeft -= 1
+  render()
+}
+
+// ── Controls ───────────────────────────────────
+
+elBtnStart.addEventListener('click', function () {
+  if (state.timerState === 'running') {
+    clearInterval(state.interval)
+    state.interval = null
+    state.timerState = 'paused'
+  } else {
+    state.timerState = 'running'
+    state.interval = setInterval(tick, 1000)
+  }
+  render()
+})
+
+elBtnReset.addEventListener('click', function () {
+  clearInterval(state.interval)
+  state.interval = null
+  state.timerState = 'idle'
+  state.secondsLeft = config[state.sessionType === 'work' ? 'work'
+    : state.sessionType === 'short-break' ? 'shortBreak' : 'longBreak'] * 60
+  render()
+})
+
+// ── Settings ───────────────────────────────────
+
+elBtnSettings.addEventListener('click', function () {
+  elInputWork.value = config.work
+  elInputShort.value = config.shortBreak
+  elInputLong.value = config.longBreak
+  elInputSessions.value = config.sessionsBeforeLongBreak
+  elSettingsPanel.classList.add('visible')
+})
+
+elBtnSetClose.addEventListener('click', function () {
+  elSettingsPanel.classList.remove('visible')
+})
+
+elBtnSave.addEventListener('click', function () {
+  var newWork = Math.max(1, parseInt(elInputWork.value, 10) || 25)
+  var newShort = Math.max(1, parseInt(elInputShort.value, 10) || 5)
+  var newLong = Math.max(1, parseInt(elInputLong.value, 10) || 30)
+  var newSessions = Math.max(1, parseInt(elInputSessions.value, 10) || 4)
+
+  config = { work: newWork, shortBreak: newShort, longBreak: newLong, sessionsBeforeLongBreak: newSessions }
+  saveConfig(config)
+
+  // Reset timer to idle with new config
+  clearInterval(state.interval)
+  state.interval = null
+  state.timerState = 'idle'
+  state.sessionType = 'work'
+  state.secondsLeft = config.work * 60
+  state.completedWork = 0
+
+  elSettingsPanel.classList.remove('visible')
+  render()
+})
+
+// ── Window controls ────────────────────────────
+
+elBtnMinimize.addEventListener('click', function () {
+  window.windowControls.minimize()
+})
+
+elBtnClose.addEventListener('click', function () {
+  window.windowControls.close()
+})
+
+// ── Init ───────────────────────────────────────
+
+render()
