@@ -29,8 +29,6 @@
 :root {
   --white: #FFFFFF;
   --black: #000000;
-  --olive: #738122;
-  --blue: #4A5CD0;
   --red: #C62A33;
   --accent: #738122;
 }
@@ -327,6 +325,12 @@ html, body {
   appearance: none;
 }
 
+.settings-body input[type='number']::-webkit-outer-spin-button,
+.settings-body input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
 .btn-save {
   width: 100%;
   padding: 10px;
@@ -342,4 +346,22 @@ html, body {
 
 .btn-save:hover {
   opacity: 0.8;
+}
+
+/* ── Focus states ─────────────────────────────── */
+
+.btn-start:focus-visible,
+.btn-reset:focus-visible,
+.btn-save:focus-visible,
+.btn-minimize:focus-visible,
+.btn-close:focus-visible,
+.btn-settings:focus-visible,
+.btn-settings-close:focus-visible {
+  outline: 2px solid var(--black);
+  outline-offset: 2px;
+}
+
+.settings-body input[type='number']:focus {
+  outline: 2px solid var(--black);
+  outline-offset: 2px;
 }
