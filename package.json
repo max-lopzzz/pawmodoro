@@ -1,0 +1,17 @@
+{
+  "name": "kawaii-pomodoro",
+  "version": "1.0.0",
+  "description": "Kawaii cat pomodoro timer",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "jest"
+  },
+  "devDependencies": {
+    "electron": "^30.0.0",
+    "jest": "^29.0.0"
+  },
+  "jest": {
+    "testEnvironment": "node"
+  }
+}
