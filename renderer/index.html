@@ -1,5 +1,55 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><meta charset="UTF-8"><title>Pomodoro</title></head>
-<body><p>Loading...</p></body>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pomodoro</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="titlebar">
+    <div class="titlebar-drag"></div>
+    <div class="titlebar-controls">
+      <button class="btn-minimize" id="btn-minimize">&#8212;</button>
+      <button class="btn-close" id="btn-close">&#215;</button>
+    </div>
+  </div>
+
+  <main class="main">
+    <div class="cat-container">
+      <img class="cat-gif" id="cat-ambient" alt="cat" src="../assets/Wake Up Art Sticker.gif">
+    </div>
+    <div class="session-label" id="session-label">Focus</div>
+    <div class="timer-display" id="timer-display">25:00</div>
+    <div class="session-dots" id="session-dots"></div>
+    <div class="controls">
+      <button class="btn-start" id="btn-start">Start</button>
+      <button class="btn-reset" id="btn-reset">Reset</button>
+    </div>
+  </main>
+
+  <button class="btn-settings" id="btn-settings">&#9881;</button>
+
+  <div class="overlay-celebration" id="overlay-celebration">
+    <img class="cat-celebration" id="cat-celebration" alt="celebration cat" src="">
+  </div>
+
+  <div class="settings-panel" id="settings-panel">
+    <div class="settings-header">
+      <span class="settings-title">Settings</span>
+      <button class="btn-settings-close" id="btn-settings-close">&#215;</button>
+    </div>
+    <div class="settings-body">
+      <label>Work (min)<input type="number" id="input-work" min="1" max="120" value="25"></label>
+      <label>Short break (min)<input type="number" id="input-short-break" min="1" max="60" value="5"></label>
+      <label>Long break (min)<input type="number" id="input-long-break" min="1" max="120" value="30"></label>
+      <label>Sessions before long break<input type="number" id="input-sessions" min="1" max="10" value="4"></label>
+    </div>
+    <button class="btn-save" id="btn-save">Save</button>
+  </div>
+
+  <script src="timer-logic.js"></script>
+  <script src="app.js"></script>
+</body>
 </html>
