@@ -1,0 +1,345 @@
+@font-face {
+  font-family: 'MorningBreeze';
+  src: url('../MorningBreeze.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'MorningBreeze';
+  src: url('../MorningBreeze-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'MorningBreeze';
+  src: url('../MorningBreeze-Light.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'MorningBreeze';
+  src: url('../MorningBreeze-Italic.otf') format('opentype');
+  font-weight: 400;
+  font-style: italic;
+}
+
+:root {
+  --white: #FFFFFF;
+  --black: #000000;
+  --olive: #738122;
+  --blue: #4A5CD0;
+  --red: #C62A33;
+  --accent: #738122;
+}
+
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 420px;
+  height: 580px;
+  overflow: hidden;
+  background: var(--white);
+  color: var(--black);
+  font-family: 'MorningBreeze', sans-serif;
+  font-weight: 400;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ── Titlebar ─────────────────────────────────── */
+
+.titlebar {
+  height: 36px;
+  display: flex;
+  align-items: center;
+  -webkit-app-region: drag;
+}
+
+.titlebar-drag {
+  flex: 1;
+}
+
+.titlebar-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-right: 12px;
+  -webkit-app-region: no-drag;
+}
+
+.btn-minimize,
+.btn-close {
+  width: 28px;
+  height: 28px;
+  border: 2px solid var(--black);
+  background: transparent;
+  cursor: pointer;
+  font-size: 16px;
+  font-family: 'MorningBreeze', sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  line-height: 1;
+}
+
+.btn-minimize:hover {
+  background: var(--black);
+  color: var(--white);
+}
+
+.btn-close:hover {
+  background: var(--red);
+  color: var(--white);
+  border-color: var(--red);
+}
+
+/* ── Main layout ──────────────────────────────── */
+
+.main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 24px 16px;
+  gap: 10px;
+}
+
+/* ── Ambient cat ──────────────────────────────── */
+
+.cat-container {
+  width: 180px;
+  height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cat-gif {
+  max-width: 180px;
+  max-height: 180px;
+  object-fit: contain;
+}
+
+/* ── Session label ────────────────────────────── */
+
+.session-label {
+  font-weight: 300;
+  font-size: 13px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  transition: color 0.3s;
+}
+
+/* ── Timer display ────────────────────────────── */
+
+.timer-display {
+  font-weight: 700;
+  font-size: 72px;
+  line-height: 1;
+  letter-spacing: -2px;
+  color: var(--black);
+}
+
+/* ── Session dots ─────────────────────────────── */
+
+.session-dots {
+  display: flex;
+  gap: 10px;
+  min-height: 16px;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  background: transparent;
+  transition: background 0.2s, border-color 0.3s;
+  display: inline-block;
+}
+
+.dot.filled {
+  background: var(--accent);
+}
+
+/* ── Controls ─────────────────────────────────── */
+
+.controls {
+  display: flex;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.btn-start {
+  padding: 10px 36px;
+  background: var(--accent);
+  color: var(--white);
+  border: none;
+  font-family: 'MorningBreeze', sans-serif;
+  font-size: 18px;
+  font-weight: 400;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: opacity 0.15s, background 0.3s;
+}
+
+.btn-start:hover {
+  opacity: 0.85;
+}
+
+.btn-reset {
+  padding: 10px 20px;
+  background: transparent;
+  color: var(--red);
+  border: 2px solid var(--red);
+  font-family: 'MorningBreeze', sans-serif;
+  font-size: 18px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.btn-reset:hover {
+  background: var(--red);
+  color: var(--white);
+}
+
+/* ── Settings gear ────────────────────────────── */
+
+.btn-settings {
+  position: fixed;
+  bottom: 14px;
+  right: 14px;
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  opacity: 0.4;
+  transition: opacity 0.15s;
+  -webkit-app-region: no-drag;
+}
+
+.btn-settings:hover {
+  opacity: 1;
+}
+
+/* ── Celebration overlay ──────────────────────── */
+
+.overlay-celebration {
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+.overlay-celebration.visible {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.cat-celebration {
+  max-width: 280px;
+  max-height: 280px;
+  object-fit: contain;
+}
+
+/* ── Settings panel ───────────────────────────── */
+
+.settings-panel {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--white);
+  border-top: 2px solid var(--black);
+  padding: 18px 24px 20px;
+  z-index: 50;
+  transform: translateY(100%);
+  transition: transform 0.25s ease;
+}
+
+.settings-panel.visible {
+  transform: translateY(0);
+}
+
+.settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.settings-title {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.btn-settings-close {
+  background: transparent;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  line-height: 1;
+  font-family: 'MorningBreeze', sans-serif;
+}
+
+.settings-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.settings-body label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 15px;
+  font-weight: 300;
+}
+
+.settings-body input[type='number'] {
+  width: 64px;
+  padding: 4px 8px;
+  border: 2px solid var(--black);
+  font-family: 'MorningBreeze', sans-serif;
+  font-size: 15px;
+  text-align: center;
+  background: var(--white);
+  border-radius: 2px;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.btn-save {
+  width: 100%;
+  padding: 10px;
+  background: var(--black);
+  color: var(--white);
+  border: none;
+  font-family: 'MorningBreeze', sans-serif;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: opacity 0.15s;
+}
+
+.btn-save:hover {
+  opacity: 0.8;
+}
