@@ -16,6 +16,16 @@ function saveConfig(config) {
   localStorage.setItem('cfg-sessions', config.sessionsBeforeLongBreak)
 }
 
+// ── Audio context (reused across chimes) ───────
+
+var _audioCtx = null
+function getAudioCtx() {
+  if (!_audioCtx || _audioCtx.state === 'closed') {
+    _audioCtx = new AudioContext()
+  }
+  return _audioCtx
+}
+
 // ── State ──────────────────────────────────────
 
 var config = loadConfig()
@@ -89,7 +99,7 @@ function render() {
 
 function playChime() {
   try {
-    var ctx = new AudioContext()
+    var ctx = getAudioCtx()
     function playNote(freq, startTime, duration) {
       var osc = ctx.createOscillator()
       var gain = ctx.createGain()
@@ -130,15 +140,17 @@ function showCelebration() {
   elCatCelebr.src = '../assets/' + gif
   elOverlay.classList.add('visible')
 
-  var timeout = setTimeout(hideCelebration, 3500)
+  var dismissed = false
 
   function hideCelebration() {
+    if (dismissed) return
+    dismissed = true
     clearTimeout(timeout)
     elOverlay.classList.remove('visible')
-    elOverlay.removeEventListener('click', hideCelebration)
     advanceSession()
   }
 
+  var timeout = setTimeout(hideCelebration, 3500)
   elOverlay.addEventListener('click', hideCelebration, { once: true })
 }
 
@@ -165,6 +177,7 @@ function tick() {
 // ── Controls ───────────────────────────────────
 
 elBtnStart.addEventListener('click', function () {
+  if (state.timerState === 'complete') return
   if (state.timerState === 'running') {
     clearInterval(state.interval)
     state.interval = null
@@ -200,10 +213,10 @@ elBtnSetClose.addEventListener('click', function () {
 })
 
 elBtnSave.addEventListener('click', function () {
-  var newWork = Math.max(1, parseInt(elInputWork.value, 10) || 25)
-  var newShort = Math.max(1, parseInt(elInputShort.value, 10) || 5)
-  var newLong = Math.max(1, parseInt(elInputLong.value, 10) || 30)
-  var newSessions = Math.max(1, parseInt(elInputSessions.value, 10) || 4)
+  var newWork = Math.max(1, parseInt(elInputWork.value, 10) || 0)
+  var newShort = Math.max(1, parseInt(elInputShort.value, 10) || 0)
+  var newLong = Math.max(1, parseInt(elInputLong.value, 10) || 0)
+  var newSessions = Math.max(1, parseInt(elInputSessions.value, 10) || 0)
 
   config = { work: newWork, shortBreak: newShort, longBreak: newLong, sessionsBeforeLongBreak: newSessions }
   saveConfig(config)
