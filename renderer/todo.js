@@ -1,10 +1,9 @@
-var panelOpen = false
+var _dragId = null
 
-var elTodoPanel     = document.getElementById('todo-panel')
-var elTodoList      = document.getElementById('todo-list')
-var elTodoOverall   = document.getElementById('todo-overall')
-var elBtnTodoToggle = document.getElementById('btn-todo-toggle')
-var elBtnAddRoot    = document.getElementById('btn-todo-add-root')
+var elTodoPanel   = document.getElementById('todo-panel')
+var elTodoList    = document.getElementById('todo-list')
+var elTodoOverall = document.getElementById('todo-overall')
+var elBtnAddRoot  = document.getElementById('btn-todo-add-root')
 
 function escapeHtml(str) {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
@@ -156,6 +155,9 @@ function buildTaskEl(task, depth) {
   selectBtn.textContent = state.activeTaskId === task.id ? 'Active' : 'Select'
   selectBtn.addEventListener('click', function () {
     state.activeTaskId = state.activeTaskId === task.id ? null : task.id
+    if (state.timerState === 'idle' && state.sessionType === 'work') {
+      state.secondsLeft = getWorkDuration()
+    }
     render(); renderTodoPanel()
   })
   main.appendChild(selectBtn)
@@ -170,6 +172,62 @@ function buildTaskEl(task, depth) {
   })
   main.appendChild(delBtn)
   row.appendChild(main)
+
+  // ── Drag and drop ───────────────────────────
+  main.setAttribute('draggable', 'true')
+
+  function clearDropClasses() {
+    elTodoList.querySelectorAll('.drop-before, .drop-after, .drop-child').forEach(function (el) {
+      el.classList.remove('drop-before', 'drop-after', 'drop-child')
+    })
+  }
+
+  function getDropPosition(e) {
+    var rect = main.getBoundingClientRect()
+    var y = e.clientY - rect.top
+    var pct = y / rect.height
+    if (pct < 0.25) return 'before'
+    if (pct > 0.75) return 'after'
+    return 'child'
+  }
+
+  main.addEventListener('dragstart', function (e) {
+    _dragId = task.id
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/plain', task.id)
+    setTimeout(function () { main.classList.add('dragging') }, 0)
+  })
+
+  main.addEventListener('dragend', function () {
+    _dragId = null
+    main.classList.remove('dragging')
+    clearDropClasses()
+  })
+
+  main.addEventListener('dragover', function (e) {
+    if (!_dragId || _dragId === task.id) return
+    if (isDescendant(loadTasks(), _dragId, task.id)) return
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    clearDropClasses()
+    var pos = getDropPosition(e)
+    main.classList.add('drop-' + pos)
+  })
+
+  main.addEventListener('dragleave', function (e) {
+    if (!main.contains(e.relatedTarget)) {
+      main.classList.remove('drop-before', 'drop-after', 'drop-child')
+    }
+  })
+
+  main.addEventListener('drop', function (e) {
+    e.preventDefault()
+    if (!_dragId || _dragId === task.id) return
+    var pos = getDropPosition(e)
+    clearDropClasses()
+    saveTasks(reorderTask(loadTasks(), _dragId, task.id, pos))
+    renderTodoPanel()
+  })
 
   var pct = getCompletionPercent(task)
   var meta = document.createElement('div')
@@ -186,6 +244,13 @@ function buildTaskEl(task, depth) {
 
   var timeLine = document.createElement('div')
   timeLine.className = 'task-time-line'
+
+  if (task.children.length > 0) {
+    var pctSpan = document.createElement('span')
+    pctSpan.className = 'task-pct-label'
+    pctSpan.textContent = pct + '%'
+    timeLine.appendChild(pctSpan)
+  }
 
   var estSpan = document.createElement('span')
   estSpan.className = 'task-est-span'
@@ -216,24 +281,6 @@ function renderTodoPanel() {
   elTodoList.innerHTML = ''
   tasks.forEach(function (task) { elTodoList.appendChild(buildTaskEl(task, 0)) })
 }
-
-function openTodoPanel() {
-  panelOpen = true
-  elTodoPanel.classList.add('open')
-  window.windowControls.resize(740)
-  renderTodoPanel()
-}
-
-function closeTodoPanel() {
-  panelOpen = false
-  elTodoPanel.classList.remove('open')
-  window.windowControls.resize(420)
-}
-
-elBtnTodoToggle.addEventListener('click', function () {
-  if (panelOpen) closeTodoPanel()
-  else openTodoPanel()
-})
 
 elBtnAddRoot.addEventListener('click', function () {
   var newTask = createTask('')

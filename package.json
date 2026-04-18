@@ -1,7 +1,7 @@
 {
-  "name": "kawaii-pomodoro",
+  "name": "kechappu",
   "version": "1.0.0",
-  "description": "Kawaii cat pomodoro timer",
+  "description": "kechappu",
   "main": "main.js",
   "scripts": {
     "start": "electron .",

@@ -5,10 +5,11 @@ let win
 
 function createWindow() {
   win = new BrowserWindow({
-    width: 420,
+    width: 740,
     height: 580,
-    resizable: true,
+    resizable: false,
     frame: false,
+    icon: path.join(__dirname, 'assets/icon.icns'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -18,7 +19,10 @@ function createWindow() {
   win.loadFile('renderer/index.html')
 }
 
-app.whenReady().then(createWindow)
+app.whenReady().then(() => {
+  if (app.dock) app.dock.setIcon(path.join(__dirname, 'assets/icon.icns'))
+  createWindow()
+})
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit()
@@ -30,4 +34,3 @@ app.on('activate', () => {
 
 ipcMain.on('window-close', () => win.close())
 ipcMain.on('window-minimize', () => win.minimize())
-ipcMain.on('window-resize', (_, width) => { if (win && !win.isDestroyed()) win.setSize(width, 580) })
