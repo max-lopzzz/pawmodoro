@@ -19,9 +19,7 @@ function checkTask(tasks, id, checked) {
     if (node.id === id) return setCheckedDeep(node, checked)
     var newChildren = checkTask(node.children, id, checked)
     var allChecked = newChildren.length > 0 && newChildren.every(function (c) { return c.checked })
-    var parentChecked = newChildren.length > 0
-      ? (checked ? allChecked : allChecked)
-      : node.checked
+    var parentChecked = newChildren.length > 0 ? allChecked : node.checked
     return Object.assign({}, node, { children: newChildren, checked: parentChecked })
   }
   return tasks.map(processNode)

@@ -64,6 +64,18 @@ test('checkTask auto-unchecks parent when sibling unchecked', function () {
   expect(result[0].checked).toBe(false)
 })
 
+test('checkTask auto-checks grandparent when all descendants checked', function () {
+  var c1 = createTask('C1'); c1.checked = true
+  var c2 = createTask('C2')
+  var parent = createTask('Parent')
+  parent.children = [c1, c2]
+  var gp = createTask('GrandParent')
+  gp.children = [parent]
+  var result = checkTask([gp], c2.id, true)
+  expect(result[0].children[0].checked).toBe(true)
+  expect(result[0].checked).toBe(true)
+})
+
 test('getLeafCount returns 1 for leaf node', function () {
   expect(getLeafCount(createTask('A'))).toBe(1)
 })
