@@ -111,8 +111,9 @@ parseTimeInput(str)
 // Parses user time input: "2h" → 120, "90m" → 90, "1.5h" → 90, "45" → 45.
 // Returns null for invalid input.
 
-formatTime(minutes)
+formatLoggedTime(minutes)
 // Formats logged minutes: 0 → "0:00", 90 → "1:30", 150 → "2:30".
+// Named distinctly from timer-logic.js's formatTime(seconds) to avoid global collision.
 ```
 
 ---
@@ -164,7 +165,7 @@ The window animates from 420→740px. Because `win.setSize()` is instant (no bui
 ### Task Row Elements
 
 - **Checkbox** — checks/unchecks task + all descendants
-- **Task name** — click to edit inline (contenteditable or input swap)
+- **Task name** — click to edit inline (input swap: text replaced with `<input>`, saved on Enter/blur, cancelled on Escape)
 - **Select button** — sets as active task; highlighted with accent-color left border when active
 - **Completion % bar** — thin bar below name, filled proportionally
 - **Time line** — `est: 2h  spent: 1:30` (est shows `—` if not set; clicking est opens inline input)
