@@ -25,6 +25,17 @@ function saveTasks(tasks) {
   localStorage.setItem('todo-tasks', JSON.stringify(tasks))
 }
 
+var _mqListener = null
+
+function attachMqListener() {
+  var mq = window.matchMedia('(prefers-color-scheme: dark)')
+  if (_mqListener) mq.removeEventListener('change', _mqListener)
+  _mqListener = function (e) {
+    if (!localStorage.getItem('theme-override')) applyTheme(e.matches ? 'dark' : 'light')
+  }
+  mq.addEventListener('change', _mqListener)
+}
+
 function applyTheme(mode) {
   if (mode === 'dark') document.body.classList.add('dark')
   else document.body.classList.remove('dark')
@@ -38,9 +49,7 @@ function initTheme() {
   } else {
     var mq = window.matchMedia('(prefers-color-scheme: dark)')
     applyTheme(mq.matches ? 'dark' : 'light')
-    mq.addEventListener('change', function (e) {
-      if (!localStorage.getItem('theme-override')) applyTheme(e.matches ? 'dark' : 'light')
-    })
+    attachMqListener()
   }
 }
 
@@ -296,6 +305,7 @@ elThemeSelect.addEventListener('change', function () {
     localStorage.removeItem('theme-override')
     var mq = window.matchMedia('(prefers-color-scheme: dark)')
     applyTheme(mq.matches ? 'dark' : 'light')
+    attachMqListener()
   } else {
     localStorage.setItem('theme-override', val)
     applyTheme(val)
@@ -304,4 +314,5 @@ elThemeSelect.addEventListener('change', function () {
 
 // ── Init ───────────────────────────────────────
 
+// Must stay last: render() depends on findTask/addMinutes from todo-logic.js
 initTheme()
