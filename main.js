@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain } = require('electron')
+const { app, BrowserWindow, ipcMain, shell } = require('electron')
 const path = require('path')
 
 let win
@@ -7,7 +7,9 @@ function createWindow() {
   win = new BrowserWindow({
     width: 740,
     height: 580,
-    resizable: false,
+    minWidth: 740,
+    minHeight: 580,
+    resizable: true,
     frame: false,
     icon: path.join(__dirname, 'assets/icon.icns'),
     webPreferences: {
@@ -34,3 +36,4 @@ app.on('activate', () => {
 
 ipcMain.on('window-close', () => win.close())
 ipcMain.on('window-minimize', () => win.minimize())
+ipcMain.on('open-external', (_, url) => shell.openExternal(url))

@@ -5,6 +5,85 @@ var elTodoList    = document.getElementById('todo-list')
 var elTodoOverall = document.getElementById('todo-overall')
 var elBtnAddRoot  = document.getElementById('btn-todo-add-root')
 
+function normalizeUrl(val) {
+  var s = (val || '').trim()
+  if (!s) return null
+  if (!/^https?:\/\//i.test(s)) s = 'https://' + s
+  try { new URL(s); return s } catch (e) { return null }
+}
+
+function extractYouTubeId(url) {
+  var m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s?]+)/)
+  return m ? m[1] : null
+}
+
+function isImageUrl(url) {
+  return /\.(png|jpe?g|gif|webp|svg)(\?.*)?$/i.test(url)
+}
+
+function getHostname(url) {
+  try { return new URL(url).hostname } catch (e) { return url }
+}
+
+function buildUrlPreview(url) {
+  var wrap = document.createElement('div')
+  wrap.className = 'task-url-preview'
+  wrap.title = url
+  wrap.addEventListener('click', function () { window.windowControls.openExternal(url) })
+
+  var ytId = extractYouTubeId(url)
+  if (ytId) {
+    var img = document.createElement('img')
+    img.className = 'task-url-thumb'
+    img.src = 'https://img.youtube.com/vi/' + ytId + '/mqdefault.jpg'
+    wrap.appendChild(img)
+  } else if (isImageUrl(url)) {
+    var img = document.createElement('img')
+    img.className = 'task-url-thumb'
+    img.src = url
+    wrap.appendChild(img)
+  } else {
+    var favicon = document.createElement('img')
+    favicon.className = 'task-url-favicon'
+    favicon.src = 'https://www.google.com/s2/favicons?domain=' + getHostname(url) + '&sz=16'
+    var label = document.createElement('span')
+    label.textContent = getHostname(url)
+    wrap.appendChild(favicon)
+    wrap.appendChild(label)
+  }
+
+  return wrap
+}
+
+function startInlineLinkEdit(btn, taskId, currentUrl) {
+  var input = document.createElement('input')
+  input.type = 'text'
+  input.className = 'task-link-input'
+  input.value = currentUrl || ''
+  input.placeholder = 'https://...'
+  btn.replaceWith(input)
+  input.focus()
+  input.select()
+
+  var saved = false
+  function save() {
+    if (saved) return; saved = true
+    var url = normalizeUrl(input.value)
+    var tasks = loadTasks().map(function fix(t) {
+      if (t.id === taskId) return Object.assign({}, t, { url: url })
+      return Object.assign({}, t, { children: t.children.map(fix) })
+    })
+    saveTasks(tasks)
+    renderTodoPanel()
+  }
+
+  input.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); save() }
+    if (e.key === 'Escape') { saved = true; renderTodoPanel() }
+  })
+  input.addEventListener('blur', save)
+}
+
 function escapeHtml(str) {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 }
@@ -150,6 +229,13 @@ function buildTaskEl(task, depth) {
   })
   main.appendChild(addChildBtn)
 
+  var linkBtn = document.createElement('button')
+  linkBtn.className = 'task-link-btn' + (task.url ? ' has-link' : '')
+  linkBtn.textContent = '🔗'
+  linkBtn.title = task.url ? 'Edit link' : 'Add link'
+  linkBtn.addEventListener('click', function () { startInlineLinkEdit(linkBtn, task.id, task.url) })
+  main.appendChild(linkBtn)
+
   var selectBtn = document.createElement('button')
   selectBtn.className = 'task-select-btn' + (state.activeTaskId === task.id ? ' selected' : '')
   selectBtn.textContent = state.activeTaskId === task.id ? 'Active' : 'Select'
@@ -263,6 +349,11 @@ function buildTaskEl(task, depth) {
   timeLine.appendChild(spentSpan)
 
   meta.appendChild(timeLine)
+
+  if (task.url) {
+    meta.appendChild(buildUrlPreview(task.url))
+  }
+
   row.appendChild(meta)
 
   if (task.children.length > 0 && !task.collapsed) {

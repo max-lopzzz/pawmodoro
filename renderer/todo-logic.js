@@ -4,7 +4,7 @@ function generateId() {
 }
 
 function createTask(name) {
-  return { id: generateId(), name: name, checked: false, estimatedMinutes: null, loggedMinutes: 0, children: [], collapsed: false }
+  return { id: generateId(), name: name, checked: false, estimatedMinutes: null, loggedMinutes: 0, children: [], collapsed: false, url: null }
 }
 
 function setCheckedDeep(node, checked) {
