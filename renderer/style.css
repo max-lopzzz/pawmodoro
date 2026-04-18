@@ -39,7 +39,12 @@
   box-sizing: border-box;
 }
 
-html, body {
+html {
+  height: 580px;
+  overflow: hidden;
+}
+
+body {
   width: 420px;
   height: 580px;
   overflow: hidden;
@@ -49,6 +54,15 @@ html, body {
   font-weight: 400;
   user-select: none;
   -webkit-user-select: none;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.25s ease;
+}
+
+body.dark {
+  --white: #1A1A1A;
+  --black: #F0F0F0;
+  --red: #E8434E;
 }
 
 /* ── Titlebar ─────────────────────────────────── */
@@ -58,7 +72,38 @@ html, body {
   display: flex;
   align-items: center;
   -webkit-app-region: drag;
+  flex-shrink: 0;
 }
+
+.titlebar-left {
+  padding-left: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.no-drag {
+  -webkit-app-region: no-drag;
+}
+
+.btn-todo-toggle {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 18px;
+  font-family: 'MorningBreeze', sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  color: var(--black);
+  opacity: 0.5;
+  transition: opacity 0.15s;
+  padding: 0;
+}
+
+.btn-todo-toggle:hover { opacity: 1; }
 
 .titlebar-drag {
   flex: 1;
@@ -101,6 +146,38 @@ html, body {
 }
 
 /* ── Main layout ──────────────────────────────── */
+
+/* ── App body ─────────────────────────────────── */
+
+.app-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── Timer section ────────────────────────────── */
+
+.timer-section {
+  width: 420px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Active task label ────────────────────────── */
+
+.active-task-label {
+  font-size: 12px;
+  font-weight: 300;
+  color: var(--accent);
+  letter-spacing: 0.05em;
+  min-height: 16px;
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color 0.3s;
+}
 
 .main {
   display: flex;
@@ -365,3 +442,200 @@ html, body {
   outline: 2px solid var(--black);
   outline-offset: 2px;
 }
+
+/* ── Todo panel ───────────────────────────────── */
+
+.todo-panel {
+  width: 320px;
+  flex-shrink: 0;
+  border-left: 2px solid var(--black);
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  transform: translateX(20px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.todo-panel.open {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: all;
+}
+
+.todo-header {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px 8px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  flex-shrink: 0;
+  gap: 8px;
+}
+
+body.dark .todo-header {
+  border-bottom-color: rgba(240, 240, 240, 0.15);
+}
+
+.todo-title {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  flex: 1;
+}
+
+.todo-overall {
+  font-size: 12px;
+  font-weight: 300;
+  color: var(--accent);
+  transition: color 0.3s;
+}
+
+.btn-todo-add-root {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--black);
+  background: transparent;
+  cursor: pointer;
+  font-size: 16px;
+  font-family: 'MorningBreeze', sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  line-height: 1;
+  padding: 0;
+  transition: background 0.15s, color 0.15s;
+}
+
+.btn-todo-add-root:hover {
+  background: var(--black);
+  color: var(--white);
+}
+
+.todo-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px 0;
+}
+
+/* ── Task rows ────────────────────────────────── */
+
+.task-row { display: flex; flex-direction: column; position: relative; }
+
+.task-row-main {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px 5px 8px;
+  position: relative;
+}
+
+.task-row-main:hover { background: rgba(0, 0, 0, 0.04); }
+body.dark .task-row-main:hover { background: rgba(255, 255, 255, 0.06); }
+
+.task-row-main.active-task { border-left: 3px solid var(--accent); padding-left: 5px; }
+
+.task-indent { flex-shrink: 0; }
+
+.task-collapse-btn {
+  width: 16px; height: 16px; background: transparent; border: none; cursor: pointer;
+  font-size: 9px; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; padding: 0; opacity: 0.5; transition: opacity 0.15s;
+  color: var(--black); font-family: 'MorningBreeze', sans-serif;
+}
+.task-collapse-btn:hover { opacity: 1; }
+.task-collapse-spacer { width: 16px; flex-shrink: 0; }
+
+.task-checkbox { width: 14px; height: 14px; cursor: pointer; flex-shrink: 0; accent-color: var(--accent); }
+
+.task-name {
+  flex: 1; font-size: 13px; font-weight: 400; cursor: pointer;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;
+}
+.task-name.checked { text-decoration: line-through; opacity: 0.45; }
+
+.task-name-input {
+  flex: 1; border: none; border-bottom: 1px solid var(--black);
+  font-family: 'MorningBreeze', sans-serif; font-size: 13px;
+  background: transparent; outline: none; min-width: 0; padding: 0; color: var(--black);
+}
+
+.task-select-btn {
+  font-size: 11px; padding: 1px 5px; border: 1px solid var(--black);
+  background: transparent; cursor: pointer; border-radius: 3px;
+  font-family: 'MorningBreeze', sans-serif; white-space: nowrap; flex-shrink: 0;
+  opacity: 0; transition: opacity 0.15s, background 0.15s, color 0.15s;
+  color: var(--black);
+}
+.task-row-main:hover .task-select-btn,
+.task-row-main.active-task .task-select-btn { opacity: 1; }
+.task-select-btn.selected { background: var(--accent); color: var(--white); border-color: var(--accent); }
+
+.task-delete-btn {
+  width: 16px; height: 16px; border: none; background: transparent; cursor: pointer;
+  font-size: 14px; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; opacity: 0; transition: opacity 0.15s, color 0.15s;
+  color: var(--black); font-family: 'MorningBreeze', sans-serif; padding: 0; line-height: 1;
+}
+.task-row-main:hover .task-delete-btn { opacity: 0.5; }
+.task-delete-btn:hover { opacity: 1 !important; color: var(--red); }
+
+.task-add-child-btn {
+  width: 16px; height: 16px; border: none; background: transparent; cursor: pointer;
+  font-size: 14px; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; opacity: 0; transition: opacity 0.15s;
+  color: var(--black); font-family: 'MorningBreeze', sans-serif; padding: 0; line-height: 1;
+}
+.task-row-main:hover .task-add-child-btn { opacity: 0.5; }
+.task-add-child-btn:hover { opacity: 1 !important; }
+
+/* ── Task meta (progress + time) ─────────────── */
+
+.task-meta { padding: 0 10px 4px; display: flex; flex-direction: column; gap: 2px; }
+
+.task-progress-bar {
+  height: 3px; background: rgba(0, 0, 0, 0.1); border-radius: 2px; overflow: hidden;
+}
+body.dark .task-progress-bar { background: rgba(255, 255, 255, 0.12); }
+
+.task-progress-fill {
+  height: 100%; background: var(--accent); border-radius: 2px;
+  transition: width 0.2s ease, background 0.3s;
+}
+
+.task-time-line {
+  font-size: 11px; font-weight: 300; color: rgba(0, 0, 0, 0.5); display: flex; gap: 10px;
+}
+body.dark .task-time-line { color: rgba(240, 240, 240, 0.5); }
+
+.task-est-span { cursor: pointer; }
+.task-est-span:hover { color: var(--black); }
+
+.task-est-input {
+  width: 52px; border: none; border-bottom: 1px solid var(--black);
+  font-family: 'MorningBreeze', sans-serif; font-size: 11px;
+  background: transparent; outline: none; padding: 0; color: var(--black);
+}
+
+.task-children { margin-left: 0; }
+
+/* ── Settings select (dark mode toggle) ─────── */
+
+.settings-body select {
+  padding: 4px 8px;
+  border: 2px solid var(--black);
+  font-family: 'MorningBreeze', sans-serif;
+  font-size: 15px;
+  background: var(--white);
+  color: var(--black);
+  border-radius: 2px;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* ── Dark mode: celebration overlay ─────────── */
+
+body.dark .overlay-celebration { background: rgba(26, 26, 26, 0.88); }
