@@ -40,13 +40,13 @@
 }
 
 html {
-  height: 580px;
+  height: 100%;
   overflow: hidden;
 }
 
 body {
-  width: 740px;
-  height: 580px;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
   background: var(--white);
   color: var(--black);
@@ -418,8 +418,8 @@ body.dark {
 /* ── Todo panel ───────────────────────────────── */
 
 .todo-panel {
-  width: 320px;
-  flex-shrink: 0;
+  flex: 1;
+  min-width: 320px;
   border-left: 2px solid var(--black);
   display: flex;
   flex-direction: column;
@@ -574,6 +574,41 @@ body.dark .task-progress-bar { background: rgba(255, 255, 255, 0.12); }
 body.dark .task-time-line { color: rgba(240, 240, 240, 0.5); }
 
 .task-pct-label { font-weight: 700; color: var(--accent); transition: color 0.3s; }
+
+.task-link-btn {
+  width: 16px; height: 16px; border: none; background: transparent; cursor: pointer;
+  font-size: 11px; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; opacity: 0; transition: opacity 0.15s; padding: 0; line-height: 1;
+}
+.task-row-main:hover .task-link-btn { opacity: 0.5; }
+.task-link-btn:hover { opacity: 1 !important; }
+.task-link-btn.has-link { opacity: 0.6; }
+
+.task-link-input {
+  flex: 1; border: none; border-bottom: 1px solid var(--black);
+  font-family: 'MorningBreeze', sans-serif; font-size: 12px;
+  background: transparent; outline: none; min-width: 0; padding: 0; color: var(--black);
+}
+
+.task-url-preview {
+  display: flex; align-items: center; gap: 6px;
+  margin-top: 4px; cursor: pointer; border-radius: 4px;
+  padding: 2px 0; max-width: 100%;
+}
+.task-url-preview:hover { opacity: 0.8; }
+
+.task-url-thumb {
+  max-width: 160px; max-height: 90px; border-radius: 4px;
+  object-fit: cover; display: block;
+}
+
+.task-url-favicon { width: 16px; height: 16px; flex-shrink: 0; }
+
+.task-url-preview span {
+  font-size: 11px; font-weight: 300; color: var(--accent);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  transition: color 0.3s;
+}
 
 .task-est-span { cursor: pointer; }
 .task-est-span:hover { color: var(--black); }

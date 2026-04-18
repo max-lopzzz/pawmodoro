@@ -8,7 +8,9 @@ A kawaii Pomodoro timer for macOS. Stay focused with the help of a very supporti
 - **Cat GIFs** — ambient cat reacts to your timer state; celebration overlay when a session completes
 - **To-do panel** — tasks with subtasks, time estimates, logged time, and completion tracking
 - **Task-linked timer** — selecting a task with an estimate sets the timer to the remaining time automatically
+- **Media links** — attach a URL to any task; YouTube and image links show a preview inline, all others show a favicon chip
 - **Drag to reorganize** — reorder and reparent tasks by dragging
+- **Resizable window** — drag to any size; timer column stays fixed, to-do panel expands
 - **Dark mode** — auto, on, or off — persists across restarts
 - **Chime** — a soft two-tone sound plays when a session completes
 - All settings and tasks persist locally across restarts
