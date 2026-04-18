@@ -16,6 +16,34 @@ function saveConfig(config) {
   localStorage.setItem('cfg-sessions', config.sessionsBeforeLongBreak)
 }
 
+function loadTasks() {
+  try { return JSON.parse(localStorage.getItem('todo-tasks') || '[]') }
+  catch (e) { return [] }
+}
+
+function saveTasks(tasks) {
+  localStorage.setItem('todo-tasks', JSON.stringify(tasks))
+}
+
+function applyTheme(mode) {
+  if (mode === 'dark') document.body.classList.add('dark')
+  else document.body.classList.remove('dark')
+  render()
+}
+
+function initTheme() {
+  var override = localStorage.getItem('theme-override')
+  if (override === 'dark' || override === 'light') {
+    applyTheme(override)
+  } else {
+    var mq = window.matchMedia('(prefers-color-scheme: dark)')
+    applyTheme(mq.matches ? 'dark' : 'light')
+    mq.addEventListener('change', function (e) {
+      if (!localStorage.getItem('theme-override')) applyTheme(e.matches ? 'dark' : 'light')
+    })
+  }
+}
+
 // ── Audio context (reused across chimes) ───────
 
 var _audioCtx = null
@@ -35,7 +63,8 @@ var state = {
   sessionType: 'work',      // work | short-break | long-break
   secondsLeft: config.work * 60,
   completedWork: 0,
-  interval: null
+  interval: null,
+  activeTaskId: null
 }
 
 // ── DOM refs ───────────────────────────────────
@@ -58,6 +87,8 @@ var elInputWork    = document.getElementById('input-work')
 var elInputShort   = document.getElementById('input-short-break')
 var elInputLong    = document.getElementById('input-long-break')
 var elInputSessions = document.getElementById('input-sessions')
+var elActiveTaskLabel = document.getElementById('active-task-label')
+var elThemeSelect     = document.getElementById('select-theme')
 
 // ── Render ─────────────────────────────────────
 
@@ -69,8 +100,10 @@ function render() {
   var labels = { work: 'Focus', 'short-break': 'Short Break', 'long-break': 'Long Break' }
   elLabel.textContent = labels[state.sessionType]
 
-  // Accent color
-  var accent = getAccentColor(state.sessionType)
+  // Accent color — use dark variants when dark mode active
+  var accent = document.body.classList.contains('dark')
+    ? getDarkAccentColor(state.sessionType)
+    : getAccentColor(state.sessionType)
   document.documentElement.style.setProperty('--accent', accent)
   elBtnStart.style.background = accent
 
@@ -92,6 +125,13 @@ function render() {
     var dot = document.createElement('span')
     dot.className = 'dot' + (i < completed ? ' filled' : '')
     elDots.appendChild(dot)
+  }
+
+  // Active task label
+  var activeTask = state.activeTaskId ? findTask(loadTasks(), state.activeTaskId) : null
+  if (elActiveTaskLabel) {
+    elActiveTaskLabel.textContent = activeTask ? '\u2192 ' + activeTask.name : ''
+    elActiveTaskLabel.style.display = activeTask ? 'block' : 'none'
   }
 }
 
@@ -129,6 +169,12 @@ function onSessionComplete() {
 
   if (state.sessionType === 'work') {
     state.completedWork += 1
+    if (state.activeTaskId) {
+      var tasks = loadTasks()
+      tasks = addMinutes(tasks, state.activeTaskId, config.work)
+      saveTasks(tasks)
+      if (typeof renderTodoPanel === 'function') renderTodoPanel()
+    }
   }
 
   playChime()
@@ -205,6 +251,7 @@ elBtnSettings.addEventListener('click', function () {
   elInputShort.value = config.shortBreak
   elInputLong.value = config.longBreak
   elInputSessions.value = config.sessionsBeforeLongBreak
+  elThemeSelect.value = localStorage.getItem('theme-override') || 'auto'
   elSettingsPanel.classList.add('visible')
 })
 
@@ -243,6 +290,18 @@ elBtnClose.addEventListener('click', function () {
   window.windowControls.close()
 })
 
+elThemeSelect.addEventListener('change', function () {
+  var val = elThemeSelect.value
+  if (val === 'auto') {
+    localStorage.removeItem('theme-override')
+    var mq = window.matchMedia('(prefers-color-scheme: dark)')
+    applyTheme(mq.matches ? 'dark' : 'light')
+  } else {
+    localStorage.setItem('theme-override', val)
+    applyTheme(val)
+  }
+})
+
 // ── Init ───────────────────────────────────────
 
-render()
+initTheme()
