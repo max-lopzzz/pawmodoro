@@ -4,6 +4,7 @@ const {
   getAmbientGif,
   pickCelebrationGif,
   getAccentColor,
+  getDarkAccentColor,
   CELEBRATION_GIFS
 } = require('../renderer/timer-logic')
 
@@ -82,5 +83,17 @@ describe('getAccentColor', () => {
   })
   test('long-break returns red', () => {
     expect(getAccentColor('long-break')).toBe('#C62A33')
+  })
+})
+
+describe('getDarkAccentColor', () => {
+  test('work returns bright olive', () => {
+    expect(getDarkAccentColor('work')).toBe('#95A82B')
+  })
+  test('short-break returns bright blue', () => {
+    expect(getDarkAccentColor('short-break')).toBe('#6A7FE8')
+  })
+  test('long-break returns bright red', () => {
+    expect(getDarkAccentColor('long-break')).toBe('#E8434E')
   })
 })
