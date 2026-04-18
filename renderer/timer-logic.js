@@ -54,6 +54,12 @@ function getAccentColor(sessionType) {
   return '#C62A33'
 }
 
+function getDarkAccentColor(sessionType) {
+  if (sessionType === 'work') return '#95A82B'
+  if (sessionType === 'short-break') return '#6A7FE8'
+  return '#E8434E'
+}
+
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     formatTime,
@@ -61,6 +67,7 @@ if (typeof module !== 'undefined' && module.exports) {
     getAmbientGif,
     pickCelebrationGif,
     getAccentColor,
+    getDarkAccentColor,
     AMBIENT_GIFS,
     CELEBRATION_GIFS
   }
