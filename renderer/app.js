@@ -73,7 +73,8 @@ var state = {
   secondsLeft: config.work * 60,
   completedWork: 0,
   interval: null,
-  activeTaskId: null
+  activeTaskId: null,
+  sessionWorkMinutes: config.work
 }
 
 // ── DOM refs ───────────────────────────────────
@@ -98,6 +99,20 @@ var elInputLong    = document.getElementById('input-long-break')
 var elInputSessions = document.getElementById('input-sessions')
 var elActiveTaskLabel = document.getElementById('active-task-label')
 var elThemeSelect     = document.getElementById('select-theme')
+
+// ── Work duration ──────────────────────────────
+
+function getWorkDuration() {
+  if (state.activeTaskId) {
+    var tasks = loadTasks()
+    var task = findTask(tasks, state.activeTaskId)
+    if (task && task.estimatedMinutes) {
+      var remaining = task.estimatedMinutes - task.loggedMinutes
+      if (remaining > 0) return remaining * 60
+    }
+  }
+  return config.work * 60
+}
 
 // ── Render ─────────────────────────────────────
 
@@ -180,7 +195,7 @@ function onSessionComplete() {
     state.completedWork += 1
     if (state.activeTaskId) {
       var tasks = loadTasks()
-      tasks = addMinutes(tasks, state.activeTaskId, config.work)
+      tasks = addMinutes(tasks, state.activeTaskId, state.sessionWorkMinutes)
       saveTasks(tasks)
       if (typeof renderTodoPanel === 'function') renderTodoPanel()
     }
@@ -212,7 +227,7 @@ function showCelebration() {
 function advanceSession() {
   var next = getNextSession(state.sessionType, state.completedWork, config)
   state.sessionType = next.type
-  state.secondsLeft = next.duration
+  state.secondsLeft = next.type === 'work' ? getWorkDuration() : next.duration
   state.timerState = 'idle'
   render()
 }
@@ -238,6 +253,9 @@ elBtnStart.addEventListener('click', function () {
     state.interval = null
     state.timerState = 'paused'
   } else {
+    if (state.sessionType === 'work' && state.timerState === 'idle') {
+      state.sessionWorkMinutes = Math.round(state.secondsLeft / 60)
+    }
     state.timerState = 'running'
     state.interval = setInterval(tick, 1000)
   }
@@ -248,8 +266,9 @@ elBtnReset.addEventListener('click', function () {
   clearInterval(state.interval)
   state.interval = null
   state.timerState = 'idle'
-  state.secondsLeft = config[state.sessionType === 'work' ? 'work'
-    : state.sessionType === 'short-break' ? 'shortBreak' : 'longBreak'] * 60
+  state.secondsLeft = state.sessionType === 'work'
+    ? getWorkDuration()
+    : config[state.sessionType === 'short-break' ? 'shortBreak' : 'longBreak'] * 60
   render()
 })
 

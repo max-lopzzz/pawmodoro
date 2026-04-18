@@ -70,6 +70,57 @@ function deleteTask(tasks, id) {
     .map(function (t) { return Object.assign({}, t, { children: deleteTask(t.children, id) }) })
 }
 
+function isDescendant(tasks, ancestorId, targetId) {
+  var ancestor = findTask(tasks, ancestorId)
+  if (!ancestor) return false
+  return !!findTask(ancestor.children, targetId)
+    || ancestor.children.some(function (c) { return isDescendant([c], c.id, targetId) })
+}
+
+function extractTask(tasks, id) {
+  var found = null
+  function remove(list) {
+    return list
+      .filter(function (t) { if (t.id === id) { found = t; return false } return true })
+      .map(function (t) { return Object.assign({}, t, { children: remove(t.children) }) })
+  }
+  var remaining = remove(tasks)
+  return { task: found, tasks: remaining }
+}
+
+function reorderTask(tasks, sourceId, targetId, position) {
+  if (sourceId === targetId) return tasks
+  var target = findTask(tasks, targetId)
+  if (!target) return tasks
+  if (isDescendant(tasks, sourceId, targetId)) return tasks
+
+  var ex = extractTask(tasks, sourceId)
+  if (!ex.task) return tasks
+  var src = ex.task
+  var remaining = ex.tasks
+
+  function insert(list) {
+    var idx = list.findIndex(function (t) { return t.id === targetId })
+    if (idx !== -1) {
+      var result = list.slice()
+      if (position === 'before') {
+        result.splice(idx, 0, src)
+      } else if (position === 'after') {
+        result.splice(idx + 1, 0, src)
+      } else {
+        var t = Object.assign({}, result[idx], { children: result[idx].children.concat([src]), collapsed: false })
+        result[idx] = t
+      }
+      return result
+    }
+    return list.map(function (t) {
+      return Object.assign({}, t, { children: insert(t.children) })
+    })
+  }
+
+  return insert(remaining)
+}
+
 function findTask(tasks, id) {
   for (var i = 0; i < tasks.length; i++) {
     if (tasks[i].id === id) return tasks[i]
@@ -98,5 +149,5 @@ function formatLoggedTime(minutes) {
 }
 
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { createTask, checkTask, getLeafCount, getCheckedLeafCount, getCompletionPercent, getOverallPercent, addMinutes, addTask, deleteTask, findTask, parseTimeInput, formatLoggedTime }
+  module.exports = { createTask, checkTask, getLeafCount, getCheckedLeafCount, getCompletionPercent, getOverallPercent, addMinutes, addTask, deleteTask, findTask, parseTimeInput, formatLoggedTime, isDescendant, extractTask, reorderTask }
 }

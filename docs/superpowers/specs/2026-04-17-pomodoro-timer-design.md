@@ -115,7 +115,7 @@ idle → running → paused → complete → idle
   - `Table Clap.gif`
   - `Cat Wow Sticker.gif`
 - Auto-dismisses after 3.5 seconds, or on click
-- Shown before advancing to next session
+- After dismissal, timer advances to the next session in `idle` state — user must press Start to begin it
 
 ---
 
