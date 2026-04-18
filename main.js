@@ -30,4 +30,4 @@ app.on('activate', () => {
 
 ipcMain.on('window-close', () => win.close())
 ipcMain.on('window-minimize', () => win.minimize())
-ipcMain.on('window-resize', (_, width) => win.setSize(width, 580))
+ipcMain.on('window-resize', (_, width) => { if (win && !win.isDestroyed()) win.setSize(width, 580) })
