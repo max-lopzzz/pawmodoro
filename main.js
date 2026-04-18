@@ -7,7 +7,7 @@ function createWindow() {
   win = new BrowserWindow({
     width: 420,
     height: 580,
-    resizable: false,
+    resizable: true,
     frame: false,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -30,3 +30,4 @@ app.on('activate', () => {
 
 ipcMain.on('window-close', () => win.close())
 ipcMain.on('window-minimize', () => win.minimize())
+ipcMain.on('window-resize', (_, width) => win.setSize(width, 580))
