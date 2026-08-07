@@ -1,7 +1,8 @@
 {
-  "name": "kechappu",
+  "name": "pawmodoro",
+  "productName": "Pawmodoro",
   "version": "1.0.0",
-  "description": "kechappu",
+  "description": "A kawaii Pomodoro timer for macOS.",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
