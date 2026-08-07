@@ -1,4 +1,4 @@
-# kechappu
+# Pawmodoro
 
 A kawaii Pomodoro timer for macOS. Stay focused with the help of a very supportive cat.
 
@@ -31,11 +31,17 @@ npm test
 ## Build
 
 ```bash
-npx @electron/packager . kechappu --platform=darwin --arch=arm64 --out=dist --overwrite --icon=assets/icon.icns
+npx @electron/packager . --platform=darwin --arch=arm64 --out=dist --overwrite --icon=assets/icon.icns
 ```
 
-The app will be at `dist/kechappu-darwin-arm64/kechappu.app`.
+The app will be at `dist/Pawmodoro-darwin-arm64/Pawmodoro.app`.
 
 ## Credits
 
+Forked from [kechappu](https://github.com/max-lopzzz/kechappu) by max-lopzzz.
+
 Cat stickers and artwork by [catsupontop](https://www.instagram.com/catsupontop).
+
+## License
+
+MIT — see [LICENSE](LICENSE).
