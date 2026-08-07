@@ -31,10 +31,10 @@ npm test
 ## Build
 
 ```bash
-npx @electron/packager . pawmodoro --platform=darwin --arch=arm64 --out=dist --overwrite --icon=assets/icon.icns
+npx @electron/packager . --platform=darwin --arch=arm64 --out=dist --overwrite --icon=assets/icon.icns
 ```
 
-The app will be at `dist/pawmodoro-darwin-arm64/pawmodoro.app`.
+The app will be at `dist/Pawmodoro-darwin-arm64/Pawmodoro.app`.
 
 ## Credits
 
