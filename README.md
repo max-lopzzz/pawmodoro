@@ -31,10 +31,21 @@ npm test
 ## Build
 
 ```bash
-npx @electron/packager . --platform=darwin --arch=arm64 --out=dist --overwrite --icon=assets/icon.icns
+npx @electron/packager . --platform=darwin --arch=arm64 --out=dist --overwrite --icon=assets/icon.icns --ignore="^/ios" --ignore="^/www" --ignore="^/tests" --ignore="^/docs"
 ```
 
 The app will be at `dist/Pawmodoro-darwin-arm64/Pawmodoro.app`.
+
+## iOS
+
+Requires full Xcode installed (not just Command Line Tools).
+
+```bash
+npm run sync:ios   # sync the web app into the Capacitor project (regenerates www/ and copies it into ios/App/App/public/)
+npm run open:ios   # open the generated Xcode project
+```
+
+Then build and run the "App" target on an iPhone Simulator from within Xcode.
 
 ## Credits
 
