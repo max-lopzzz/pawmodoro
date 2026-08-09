@@ -311,11 +311,11 @@ elBtnSave.addEventListener('click', function () {
 // ── Window controls ────────────────────────────
 
 elBtnMinimize.addEventListener('click', function () {
-  window.windowControls.minimize()
+  window.platformControls.minimize()
 })
 
 elBtnClose.addEventListener('click', function () {
-  window.windowControls.close()
+  window.platformControls.close()
 })
 
 elThemeSelect.addEventListener('change', function () {
