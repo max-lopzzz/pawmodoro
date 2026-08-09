@@ -29,7 +29,7 @@ function buildUrlPreview(url) {
   var wrap = document.createElement('div')
   wrap.className = 'task-url-preview'
   wrap.title = url
-  wrap.addEventListener('click', function () { window.windowControls.openExternal(url) })
+  wrap.addEventListener('click', function () { window.platformControls.openExternal(url) })
 
   var ytId = extractYouTubeId(url)
   if (ytId) {
