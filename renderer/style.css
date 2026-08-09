@@ -648,3 +648,12 @@ body.dark .task-row-main.drop-child { background: rgba(149, 168, 43, 0.15); }
 /* ── Dark mode: celebration overlay ─────────── */
 
 body.dark .overlay-celebration { background: rgba(26, 26, 26, 0.88); }
+
+/* ── Mobile layout (iOS) ──────────────────────── */
+
+@media (max-width: 600px) {
+  .titlebar { display: none; }
+  .app-body { flex-direction: column; padding-top: env(safe-area-inset-top); }
+  .timer-section { width: 100%; }
+  .todo-panel { min-width: 0; border-left: none; border-top: 2px solid var(--black); }
+}
