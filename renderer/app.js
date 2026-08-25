@@ -280,6 +280,7 @@ elBtnSettings.addEventListener('click', function () {
   elInputLong.value = config.longBreak
   elInputSessions.value = config.sessionsBeforeLongBreak
   elThemeSelect.value = localStorage.getItem('theme-override') || 'auto'
+  document.getElementById('room-panel').classList.remove('visible')
   elSettingsPanel.classList.add('visible')
 })
 
