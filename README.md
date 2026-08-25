@@ -60,7 +60,7 @@ Shared rooms need your own free [Supabase](https://supabase.com) project:
 
 Forked from [kechappu](https://github.com/max-lopzzz/kechappu) by max-lopzzz.
 
-Cat stickers and artwork by [catsupontop](https://www.instagram.com/catsupontop).
+Cat artwork by @jaimeno.iso (Discord).
 
 ## License
 

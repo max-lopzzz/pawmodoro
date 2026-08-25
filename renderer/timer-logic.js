@@ -1,20 +1,12 @@
 var AMBIENT_GIFS = {
-  idle: 'Wake Up Art Sticker.gif',
-  'work-running': 'Running.gif',
-  'work-paused': 'Confused Wait What Sticker.gif',
-  'short-break': 'Cat Lick Sticker.gif',
-  'long-break': 'Cat Camping Sticker.gif'
+  idle: 'Cat Idle.gif',
+  'work-running': 'Cat Working.gif',
+  'work-paused': 'Cat Idle.gif',
+  'short-break': 'Cat Resting.gif',
+  'long-break': 'Cat Resting.gif'
 }
 
-var CELEBRATION_GIFS = [
-  'Cat Hooray Sticker.gif',
-  'Cat Party Sticker.gif',
-  'Happy Dance Sticker.gif',
-  'Standing Ovation Applause Sticker.gif',
-  'Cat Clap Sticker.gif',
-  'Table Clap.gif',
-  'Cat Wow Sticker.gif'
-]
+var CELEBRATION_GIFS = ['Cat Celebrating.gif']
 
 function formatTime(seconds) {
   var m = Math.floor(seconds / 60)

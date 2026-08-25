@@ -48,22 +48,22 @@ describe('getNextSession', () => {
 
 describe('getAmbientGif', () => {
   test('returns idle gif when timerState is idle', () => {
-    expect(getAmbientGif('work', 'idle')).toBe('Wake Up Art Sticker.gif')
+    expect(getAmbientGif('work', 'idle')).toBe('Cat Idle.gif')
   })
   test('returns idle gif when timerState is complete', () => {
-    expect(getAmbientGif('work', 'complete')).toBe('Wake Up Art Sticker.gif')
+    expect(getAmbientGif('work', 'complete')).toBe('Cat Idle.gif')
   })
-  test('returns running gif for work+running', () => {
-    expect(getAmbientGif('work', 'running')).toBe('Running.gif')
+  test('returns working gif for work+running', () => {
+    expect(getAmbientGif('work', 'running')).toBe('Cat Working.gif')
   })
-  test('returns confused gif for work+paused', () => {
-    expect(getAmbientGif('work', 'paused')).toBe('Confused Wait What Sticker.gif')
+  test('returns idle gif for work+paused', () => {
+    expect(getAmbientGif('work', 'paused')).toBe('Cat Idle.gif')
   })
-  test('returns lick gif for short-break', () => {
-    expect(getAmbientGif('short-break', 'running')).toBe('Cat Lick Sticker.gif')
+  test('returns resting gif for short-break', () => {
+    expect(getAmbientGif('short-break', 'running')).toBe('Cat Resting.gif')
   })
-  test('returns camping gif for long-break', () => {
-    expect(getAmbientGif('long-break', 'running')).toBe('Cat Camping Sticker.gif')
+  test('returns resting gif for long-break', () => {
+    expect(getAmbientGif('long-break', 'running')).toBe('Cat Resting.gif')
   })
 })
 
