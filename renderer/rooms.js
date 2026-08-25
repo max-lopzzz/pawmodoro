@@ -24,7 +24,8 @@ var roomState = {
   joinCode: null,
   channel: null,
   nickname: '',
-  isAway: false
+  isAway: false,
+  lastStatus: null
 }
 
 // ── DOM refs (room feature) ─────────────────────
@@ -53,6 +54,9 @@ function ensureAnonSession() {
   return supabaseClient.auth.getSession().then(function (result) {
     if (result.data.session) return result.data.session
     return supabaseClient.auth.signInAnonymously().then(function (signInResult) {
+      if (signInResult.error || !signInResult.data.session) {
+        throw signInResult.error || new Error('No session returned')
+      }
       return signInResult.data.session
     })
   })
@@ -81,11 +85,24 @@ function trackPresence() {
 
 function updateRoomStatus() {
   if (!roomState.channel) return
+  var status = currentStatus()
+  if (status === roomState.lastStatus) return
+  roomState.lastStatus = status
   trackPresence()
 }
 
 document.addEventListener('visibilitychange', function () {
   roomState.isAway = document.hidden
+  updateRoomStatus()
+})
+
+window.addEventListener('blur', function () {
+  roomState.isAway = true
+  updateRoomStatus()
+})
+
+window.addEventListener('focus', function () {
+  roomState.isAway = false
   updateRoomStatus()
 })
 
@@ -183,6 +200,7 @@ elBtnRoomLeave.addEventListener('click', function () {
   roomState.roomId = null
   roomState.joinCode = null
   roomState.channel = null
+  roomState.lastStatus = null
   elRoomParticipants.innerHTML = ''
   elRoomPanel.classList.remove('in-room')
 })
