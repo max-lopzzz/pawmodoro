@@ -262,8 +262,12 @@ function roomHandleStart() {
   var row = roomState.timerRow
   var updates
   if (row.is_running) {
-    var elapsedSeconds = Math.floor((Date.now() - new Date(row.started_at).getTime()) / 1000)
-    updates = { duration_seconds: row.duration_seconds - elapsedSeconds, started_at: null, is_running: false }
+    var remaining = computeSecondsLeft({
+      durationSeconds: row.duration_seconds,
+      startedAt: row.started_at,
+      isRunning: true
+    }, Date.now())
+    updates = { duration_seconds: remaining, started_at: null, is_running: false }
   } else {
     updates = { started_at: new Date().toISOString(), is_running: true }
   }
