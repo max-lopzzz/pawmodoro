@@ -1,2 +1,2 @@
-window.SUPABASE_URL = 'https://YOUR-PROJECT.supabase.co'
-window.SUPABASE_ANON_KEY = 'YOUR-ANON-KEY'
+window.SUPABASE_URL = 'https://fguqvoeiuwemntxfzwqk.supabase.co'
+window.SUPABASE_ANON_KEY = 'sb_publishable_HH3mybVRfjRguWcQkKgEdg_bPzMWc-T'
