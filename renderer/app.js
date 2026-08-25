@@ -157,6 +157,8 @@ function render() {
     elActiveTaskLabel.textContent = activeTask ? '\u2192 ' + activeTask.name : ''
     elActiveTaskLabel.style.display = activeTask ? 'block' : 'none'
   }
+
+  if (typeof updateRoomStatus === 'function') updateRoomStatus()
 }
 
 // ── Chime ──────────────────────────────────────
@@ -280,6 +282,7 @@ elBtnSettings.addEventListener('click', function () {
   elInputLong.value = config.longBreak
   elInputSessions.value = config.sessionsBeforeLongBreak
   elThemeSelect.value = localStorage.getItem('theme-override') || 'auto'
+  document.getElementById('room-panel').classList.remove('visible')
   elSettingsPanel.classList.add('visible')
 })
 

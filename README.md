@@ -13,6 +13,7 @@ A kawaii Pomodoro timer for macOS. Stay focused with the help of a very supporti
 - **Resizable window** — drag to any size; timer column stays fixed, to-do panel expands
 - **Dark mode** — auto, on, or off — persists across restarts
 - **Chime** — a soft two-tone sound plays when a session completes
+- **Shared rooms** — create or join a room by code to see who else is focusing, on a break, idle, or away (requires your own Supabase project — see below)
 - All settings and tasks persist locally across restarts
 
 ## Run locally
@@ -46,6 +47,14 @@ npm run open:ios   # open the generated Xcode project
 ```
 
 Then build and run the "App" target on an iPhone Simulator from within Xcode.
+
+## Shared Rooms Setup
+
+Shared rooms need your own free [Supabase](https://supabase.com) project:
+
+1. Create a project, then run `supabase/schema.sql` in its SQL editor.
+2. Enable Authentication → Providers → Anonymous Sign-Ins.
+3. Fill in `renderer/supabase-config.js` with your project's URL and anon key (the anon key is meant to be public — it's protected by Row Level Security, not secrecy).
 
 ## Credits
 
