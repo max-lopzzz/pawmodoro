@@ -157,6 +157,8 @@ function render() {
     elActiveTaskLabel.textContent = activeTask ? '\u2192 ' + activeTask.name : ''
     elActiveTaskLabel.style.display = activeTask ? 'block' : 'none'
   }
+
+  if (typeof updateRoomStatus === 'function') updateRoomStatus()
 }
 
 // ── Chime ──────────────────────────────────────
