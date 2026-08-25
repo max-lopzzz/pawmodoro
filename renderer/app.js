@@ -219,7 +219,11 @@ function showCelebration() {
     dismissed = true
     clearTimeout(timeout)
     elOverlay.classList.remove('visible')
-    advanceSession()
+    if (typeof roomIsActive === 'function' && roomIsActive()) {
+      render()
+    } else {
+      advanceSession()
+    }
   }
 
   var timeout = setTimeout(hideCelebration, 3500)
@@ -237,6 +241,15 @@ function advanceSession() {
 // ── Timer tick ─────────────────────────────────
 
 function tick() {
+  if (typeof roomIsActive === 'function' && roomIsActive()) {
+    state.secondsLeft = roomSecondsLeft()
+    if (state.secondsLeft <= 0 && state.timerState !== 'complete') {
+      state.timerState = 'complete'
+      onRoomSessionComplete()
+    }
+    render()
+    return
+  }
   if (state.secondsLeft <= 0) {
     onSessionComplete()
     render()
@@ -249,6 +262,10 @@ function tick() {
 // ── Controls ───────────────────────────────────
 
 elBtnStart.addEventListener('click', function () {
+  if (typeof roomIsActive === 'function' && roomIsActive()) {
+    roomHandleStart()
+    return
+  }
   if (state.timerState === 'complete') return
   if (state.timerState === 'running') {
     clearInterval(state.interval)
@@ -265,6 +282,10 @@ elBtnStart.addEventListener('click', function () {
 })
 
 elBtnReset.addEventListener('click', function () {
+  if (typeof roomIsActive === 'function' && roomIsActive()) {
+    roomHandleReset()
+    return
+  }
   clearInterval(state.interval)
   state.interval = null
   state.timerState = 'idle'

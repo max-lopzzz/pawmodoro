@@ -25,7 +25,9 @@ var roomState = {
   channel: null,
   nickname: '',
   isAway: false,
-  lastStatus: null
+  lastStatus: null,
+  timerRow: null,
+  tickInterval: null
 }
 
 // ── DOM refs (room feature) ─────────────────────
@@ -129,6 +131,94 @@ function renderParticipants() {
   })
 }
 
+// ── Timer sync ───────────────────────────────────
+
+function applyRoomTimerRow(row) {
+  roomState.timerRow = row
+  state.sessionType = row.phase
+  state.completedWork = row.completed_work
+  state.timerState = row.is_running ? 'running' : 'idle'
+  state.secondsLeft = computeSecondsLeft({
+    durationSeconds: row.duration_seconds,
+    startedAt: row.started_at,
+    isRunning: row.is_running
+  }, Date.now())
+  render()
+}
+
+function roomIsActive() {
+  return !!roomState.roomId
+}
+
+function roomSecondsLeft() {
+  return computeSecondsLeft({
+    durationSeconds: roomState.timerRow.duration_seconds,
+    startedAt: roomState.timerRow.started_at,
+    isRunning: roomState.timerRow.is_running
+  }, Date.now())
+}
+
+function roomHandleStart() {
+  var row = roomState.timerRow
+  var updates
+  if (row.is_running) {
+    var remaining = computeSecondsLeft({
+      durationSeconds: row.duration_seconds,
+      startedAt: row.started_at,
+      isRunning: true
+    }, Date.now())
+    updates = { duration_seconds: remaining, started_at: null, is_running: false }
+  } else {
+    updates = { started_at: new Date().toISOString(), is_running: true }
+  }
+  supabaseClient.from('rooms').update(updates).eq('id', roomState.roomId).then(function () {})
+}
+
+function roomHandleReset() {
+  var row = roomState.timerRow
+  var duration = row.phase === 'work'
+    ? getWorkDuration()
+    : config[row.phase === 'short-break' ? 'shortBreak' : 'longBreak'] * 60
+  supabaseClient.from('rooms')
+    .update({ duration_seconds: duration, started_at: null, is_running: false })
+    .eq('id', roomState.roomId)
+    .then(function () {})
+}
+
+function roomAttemptAdvance() {
+  var row = roomState.timerRow
+  var workDuration = getWorkDuration()
+  var payload = computeAdvancePayload(
+    { phase: row.phase, completedWork: row.completed_work },
+    config,
+    workDuration
+  )
+  supabaseClient.from('rooms')
+    .update({
+      phase: payload.phase,
+      duration_seconds: payload.durationSeconds,
+      started_at: null,
+      is_running: false,
+      completed_work: payload.completedWork
+    })
+    .eq('id', roomState.roomId)
+    .eq('phase', row.phase)
+    .eq('started_at', row.started_at)
+    .then(function () {})
+}
+
+function onRoomSessionComplete() {
+  if (state.sessionType === 'work' && state.activeTaskId) {
+    var tasks = loadTasks()
+    tasks = addMinutes(tasks, state.activeTaskId, state.sessionWorkMinutes)
+    saveTasks(tasks)
+    if (typeof renderTodoPanel === 'function') renderTodoPanel()
+  }
+  playChime()
+  showCelebration()
+  roomAttemptAdvance()
+}
+
 // ── Create / Join / Leave ───────────────────────
 
 function subscribeToRoom(roomId) {
@@ -137,6 +227,15 @@ function subscribeToRoom(roomId) {
   })
 
   channel.on('presence', { event: 'sync' }, renderParticipants)
+
+  channel.on('postgres_changes', {
+    event: 'UPDATE',
+    schema: 'public',
+    table: 'rooms',
+    filter: 'id=eq.' + roomId
+  }, function (payload) {
+    applyRoomTimerRow(payload.new)
+  })
 
   channel.subscribe(function (status) {
     if (status === 'SUBSCRIBED') {
@@ -149,13 +248,15 @@ function subscribeToRoom(roomId) {
   return channel
 }
 
-function enterRoom(roomId, joinCode) {
-  roomState.roomId = roomId
-  roomState.joinCode = joinCode
+function enterRoom(row) {
+  roomState.roomId = row.id
+  roomState.joinCode = row.join_code
   roomState.nickname = getNickname()
   localStorage.setItem('room-nickname', roomState.nickname)
-  subscribeToRoom(roomId)
-  elRoomCodeValue.textContent = joinCode
+  applyRoomTimerRow(row)
+  subscribeToRoom(row.id)
+  roomState.tickInterval = setInterval(tick, 1000)
+  elRoomCodeValue.textContent = row.join_code
   elRoomPanel.classList.add('in-room')
   clearRoomError()
 }
@@ -169,7 +270,7 @@ elBtnRoomCreate.addEventListener('click', function () {
         showRoomError('Could not create room. Try again.')
         return
       }
-      enterRoom(result.data.id, result.data.join_code)
+      enterRoom(result.data)
     })
   }).catch(function () {
     showRoomError('Could not connect. Check your connection.')
@@ -186,7 +287,7 @@ elBtnRoomJoin.addEventListener('click', function () {
         showRoomError('Room not found.')
         return
       }
-      enterRoom(result.data.id, result.data.join_code)
+      enterRoom(result.data)
     })
   }).catch(function () {
     showRoomError('Could not connect. Check your connection.')
@@ -197,10 +298,21 @@ elBtnRoomLeave.addEventListener('click', function () {
   if (roomState.channel) {
     supabaseClient.removeChannel(roomState.channel)
   }
+  if (roomState.tickInterval) {
+    clearInterval(roomState.tickInterval)
+  }
   roomState.roomId = null
   roomState.joinCode = null
   roomState.channel = null
   roomState.lastStatus = null
+  roomState.timerRow = null
+  roomState.tickInterval = null
   elRoomParticipants.innerHTML = ''
   elRoomPanel.classList.remove('in-room')
+
+  state.sessionType = 'work'
+  state.secondsLeft = config.work * 60
+  state.completedWork = 0
+  state.timerState = 'idle'
+  render()
 })
