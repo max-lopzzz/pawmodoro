@@ -1,0 +1,1 @@
+window.REVENUECAT_API_KEY = 'test_kZvwYQCGYEFNChQFCxuJmLtShuK'
