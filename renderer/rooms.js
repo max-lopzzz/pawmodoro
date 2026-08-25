@@ -139,6 +139,7 @@ function applyRoomTimerRow(row) {
   var isAdvance = prev && prev.is_running && !row.is_running &&
     row.phase !== prev.phase &&
     roomState.celebratedFor !== prev.started_at
+  var completedPhase = prev ? prev.phase : null
 
   roomState.timerRow = row
   state.sessionType = row.phase
@@ -152,7 +153,7 @@ function applyRoomTimerRow(row) {
 
   if (isAdvance) {
     roomState.celebratedFor = prev.started_at
-    roomCelebrate()
+    roomCelebrate(completedPhase)
   }
 
   render()
@@ -225,8 +226,8 @@ function roomAttemptAdvance() {
     })
 }
 
-function roomCelebrate() {
-  if (state.sessionType === 'work' && state.activeTaskId) {
+function roomCelebrate(completedPhase) {
+  if (completedPhase === 'work' && state.activeTaskId) {
     var tasks = loadTasks()
     tasks = addMinutes(tasks, state.activeTaskId, state.sessionWorkMinutes)
     saveTasks(tasks)
@@ -238,7 +239,7 @@ function roomCelebrate() {
 
 function onRoomSessionComplete() {
   roomState.celebratedFor = roomState.timerRow.started_at
-  roomCelebrate()
+  roomCelebrate(state.sessionType)
   roomAttemptAdvance()
 }
 
