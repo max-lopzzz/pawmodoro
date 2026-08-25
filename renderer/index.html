@@ -46,6 +46,7 @@
   </div>
 
   <button class="btn-settings" id="btn-settings" aria-label="Open settings">&#9881;</button>
+  <button class="btn-room" id="btn-room" aria-label="Open room">&#128101;</button>
 
   <div class="overlay-celebration" id="overlay-celebration">
     <img class="cat-celebration" id="cat-celebration" alt="celebration cat" src="">
@@ -72,10 +73,40 @@
     <button class="btn-save" id="btn-save">Save</button>
   </div>
 
+  <div class="room-panel" id="room-panel">
+    <div class="room-header">
+      <span class="room-title">Room</span>
+      <button class="btn-room-close" id="btn-room-close" aria-label="Close room panel">&#215;</button>
+    </div>
+    <div class="room-body">
+      <div class="room-join-view" id="room-join-view">
+        <label>Nickname<input type="text" id="input-nickname" maxlength="24" placeholder="Your name"></label>
+        <button class="btn-room-create" id="btn-room-create">Create Room</button>
+        <div class="room-join-row">
+          <input type="text" id="input-join-code" maxlength="6" placeholder="Enter code">
+          <button class="btn-room-join" id="btn-room-join">Join</button>
+        </div>
+        <div class="room-error" id="room-error"></div>
+      </div>
+      <div class="room-active-view" id="room-active-view">
+        <div class="room-code-display">
+          <span class="room-code-label">Room Code</span>
+          <span class="room-code-value" id="room-code-value"></span>
+        </div>
+        <div class="room-participants" id="room-participants"></div>
+        <button class="btn-room-leave" id="btn-room-leave">Leave Room</button>
+      </div>
+    </div>
+  </div>
+
   <script src="timer-logic.js"></script>
   <script src="todo-logic.js"></script>
+  <script src="rooms-logic.js"></script>
+  <script src="supabase-config.js"></script>
+  <script src="supabase.js"></script>
   <script src="platform.js"></script>
   <script src="app.js"></script>
   <script src="todo.js"></script>
+  <script src="rooms.js"></script>
 </body>
 </html>
