@@ -278,6 +278,23 @@ body.dark {
   opacity: 1;
 }
 
+.btn-room {
+  position: fixed;
+  bottom: 14px;
+  right: 44px;
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  opacity: 0.4;
+  transition: opacity 0.15s;
+  -webkit-app-region: no-drag;
+}
+
+.btn-room:hover {
+  opacity: 1;
+}
+
 /* ── Celebration overlay ──────────────────────── */
 
 .overlay-celebration {
