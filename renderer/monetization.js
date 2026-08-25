@@ -34,7 +34,7 @@ function ensureRoomAccess(userId) {
   }
   return client.isEntitledTo('pawmodoro_pro').then(function (entitled) {
     if (entitled) return true
-    return client.presentPaywall({}).then(function () {
+    return client.presentPaywall({}).catch(function () {}).then(function () {
       return client.isEntitledTo('pawmodoro_pro')
     })
   })

@@ -44,8 +44,8 @@ elBtnRoomCreate / elBtnRoomJoin click handler:
 1. Configure `Purchases` once per session, using `userId` as `appUserId` (guarded so repeat calls are no-ops).
 2. If the free-trial flag is not yet set, resolve `true` immediately — first room is free.
 3. Otherwise, call `purchases.isEntitledTo('pawmodoro_pro')`. If entitled, resolve `true`.
-4. Otherwise, call `purchases.presentPaywall({})` — no offering needs to be passed explicitly; it defaults to the current offering configured in the dashboard. This renders RevenueCat's full paywall screen and checkout as a self-contained overlay (or resolves if the user backs out without purchasing).
-5. After the paywall promise settles, re-check `isEntitledTo('pawmodoro_pro')` and resolve with that result — covers both "purchased successfully" and "dismissed without buying."
+4. Otherwise, call `purchases.presentPaywall({})` — no offering needs to be passed explicitly; it defaults to the current offering configured in the dashboard. This renders RevenueCat's full paywall screen and checkout as a self-contained overlay. Note the SDK's actual contract (confirmed against the vendored `renderer/purchases.js`, v1.53.1): this promise *rejects* with a `UserCancelledError` when the user dismisses/backs out without purchasing — it does not resolve in that case. `ensureRoomAccess` swallows that rejection (`.catch(function () {})`) so it doesn't propagate past the paywall step, rather than treating dismissal as a success.
+5. After the paywall promise settles (resolved on purchase, or its rejection swallowed on dismissal/cancellation), re-check `isEntitledTo('pawmodoro_pro')` and resolve with that result — covers both "purchased successfully" (true) and "dismissed without buying" (false).
 
 `markFreeTrialUsed()` sets a `localStorage` flag (e.g. `room-free-trial-used`), called from `enterRoom()` on every successful room entry (idempotent after the first).
 
