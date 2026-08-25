@@ -1,5 +1,6 @@
 var JOIN_CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
 var JOIN_CODE_LENGTH = 6
+var getNextSession = (typeof require !== 'undefined') ? require('./timer-logic').getNextSession : window.getNextSession
 
 function generateJoinCode() {
   var code = ''
@@ -16,10 +17,28 @@ function deriveStatus(timerState, sessionType, isAway) {
   return 'idle'
 }
 
+function computeSecondsLeft(row, now) {
+  if (!row.isRunning) return row.durationSeconds
+  var elapsedSeconds = Math.floor((now - new Date(row.startedAt).getTime()) / 1000)
+  return row.durationSeconds - elapsedSeconds
+}
+
+function computeAdvancePayload(row, config, workDurationSeconds) {
+  var nextCompletedWork = row.phase === 'work' ? row.completedWork + 1 : row.completedWork
+  var next = getNextSession(row.phase, nextCompletedWork, config)
+  return {
+    phase: next.type,
+    durationSeconds: next.type === 'work' ? workDurationSeconds : next.duration,
+    completedWork: nextCompletedWork
+  }
+}
+
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     generateJoinCode,
     deriveStatus,
+    computeSecondsLeft,
+    computeAdvancePayload,
     JOIN_CODE_ALPHABET,
     JOIN_CODE_LENGTH
   }

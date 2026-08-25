@@ -1,6 +1,8 @@
 const {
   generateJoinCode,
   deriveStatus,
+  computeSecondsLeft,
+  computeAdvancePayload,
   JOIN_CODE_ALPHABET,
   JOIN_CODE_LENGTH
 } = require('../renderer/rooms-logic')
@@ -52,5 +54,45 @@ describe('deriveStatus', () => {
   test('returns "idle" when stopped or complete', () => {
     expect(deriveStatus('idle', 'work', false)).toBe('idle')
     expect(deriveStatus('complete', 'work', false)).toBe('idle')
+  })
+})
+
+describe('computeSecondsLeft', () => {
+  test('returns durationSeconds unchanged when not running', () => {
+    expect(computeSecondsLeft({ durationSeconds: 100, startedAt: null, isRunning: false }, Date.now())).toBe(100)
+  })
+
+  test('counts down from durationSeconds based on elapsed time when running', () => {
+    var now = Date.now()
+    var startedAt = new Date(now - 10000).toISOString()
+    expect(computeSecondsLeft({ durationSeconds: 100, startedAt: startedAt, isRunning: true }, now)).toBe(90)
+  })
+
+  test('can go negative once time is up (caller checks <= 0)', () => {
+    var now = Date.now()
+    var startedAt = new Date(now - 150000).toISOString()
+    expect(computeSecondsLeft({ durationSeconds: 100, startedAt: startedAt, isRunning: true }, now)).toBe(-50)
+  })
+})
+
+describe('computeAdvancePayload', () => {
+  var config = { work: 25, shortBreak: 5, longBreak: 30, sessionsBeforeLongBreak: 4 }
+
+  test('advances from work to short-break, incrementing completedWork', () => {
+    var row = { phase: 'work', completedWork: 1 }
+    var payload = computeAdvancePayload(row, config, 1500)
+    expect(payload).toEqual({ phase: 'short-break', durationSeconds: 300, completedWork: 2 })
+  })
+
+  test('advances from work to long-break on the Nth session, incrementing completedWork', () => {
+    var row = { phase: 'work', completedWork: 3 }
+    var payload = computeAdvancePayload(row, config, 1500)
+    expect(payload).toEqual({ phase: 'long-break', durationSeconds: 1800, completedWork: 4 })
+  })
+
+  test('advances from a break back to work, using the supplied work duration, completedWork unchanged', () => {
+    var row = { phase: 'short-break', completedWork: 2 }
+    var payload = computeAdvancePayload(row, config, 900)
+    expect(payload).toEqual({ phase: 'work', durationSeconds: 900, completedWork: 2 })
   })
 })
