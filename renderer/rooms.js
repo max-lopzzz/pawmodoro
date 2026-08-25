@@ -27,7 +27,8 @@ var roomState = {
   isAway: false,
   lastStatus: null,
   timerRow: null,
-  tickInterval: null
+  tickInterval: null,
+  celebratedFor: null
 }
 
 // ── DOM refs (room feature) ─────────────────────
@@ -134,6 +135,11 @@ function renderParticipants() {
 // ── Timer sync ───────────────────────────────────
 
 function applyRoomTimerRow(row) {
+  var prev = roomState.timerRow
+  var isAdvance = prev && prev.is_running && !row.is_running &&
+    row.phase !== prev.phase &&
+    roomState.celebratedFor !== prev.started_at
+
   roomState.timerRow = row
   state.sessionType = row.phase
   state.completedWork = row.completed_work
@@ -143,6 +149,12 @@ function applyRoomTimerRow(row) {
     startedAt: row.started_at,
     isRunning: row.is_running
   }, Date.now())
+
+  if (isAdvance) {
+    roomState.celebratedFor = prev.started_at
+    roomCelebrate()
+  }
+
   render()
 }
 
@@ -171,7 +183,9 @@ function roomHandleStart() {
   } else {
     updates = { started_at: new Date().toISOString(), is_running: true }
   }
-  supabaseClient.from('rooms').update(updates).eq('id', roomState.roomId).then(function () {})
+  supabaseClient.from('rooms').update(updates).eq('id', roomState.roomId).then(function (result) {
+    if (result.error) showRoomError('Could not update the timer. Try again.')
+  })
 }
 
 function roomHandleReset() {
@@ -182,7 +196,9 @@ function roomHandleReset() {
   supabaseClient.from('rooms')
     .update({ duration_seconds: duration, started_at: null, is_running: false })
     .eq('id', roomState.roomId)
-    .then(function () {})
+    .then(function (result) {
+      if (result.error) showRoomError('Could not update the timer. Try again.')
+    })
 }
 
 function roomAttemptAdvance() {
@@ -204,10 +220,12 @@ function roomAttemptAdvance() {
     .eq('id', roomState.roomId)
     .eq('phase', row.phase)
     .eq('started_at', row.started_at)
-    .then(function () {})
+    .then(function (result) {
+      if (result.error) showRoomError('Could not update the timer. Try again.')
+    })
 }
 
-function onRoomSessionComplete() {
+function roomCelebrate() {
   if (state.sessionType === 'work' && state.activeTaskId) {
     var tasks = loadTasks()
     tasks = addMinutes(tasks, state.activeTaskId, state.sessionWorkMinutes)
@@ -216,6 +234,11 @@ function onRoomSessionComplete() {
   }
   playChime()
   showCelebration()
+}
+
+function onRoomSessionComplete() {
+  roomState.celebratedFor = roomState.timerRow.started_at
+  roomCelebrate()
   roomAttemptAdvance()
 }
 
@@ -242,6 +265,9 @@ function subscribeToRoom(roomId) {
       roomState.channel = channel
       trackPresence()
       renderParticipants()
+      clearRoomError()
+    } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+      showRoomError('Room connection lost — leave and rejoin.')
     }
   })
 
@@ -253,6 +279,8 @@ function enterRoom(row) {
   roomState.joinCode = row.join_code
   roomState.nickname = getNickname()
   localStorage.setItem('room-nickname', roomState.nickname)
+  clearInterval(state.interval)
+  state.interval = null
   applyRoomTimerRow(row)
   subscribeToRoom(row.id)
   roomState.tickInterval = setInterval(tick, 1000)
@@ -307,6 +335,7 @@ elBtnRoomLeave.addEventListener('click', function () {
   roomState.lastStatus = null
   roomState.timerRow = null
   roomState.tickInterval = null
+  roomState.celebratedFor = null
   elRoomParticipants.innerHTML = ''
   elRoomPanel.classList.remove('in-room')
 
