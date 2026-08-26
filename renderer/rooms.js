@@ -28,7 +28,8 @@ var roomState = {
   lastStatus: null,
   timerRow: null,
   tickInterval: null,
-  celebratedFor: null
+  celebratedFor: null,
+  skipStreak: 0
 }
 
 // ── DOM refs (room feature) ─────────────────────
@@ -83,7 +84,7 @@ function currentStatus() {
 
 function trackPresence() {
   if (!roomState.channel) return
-  roomState.channel.track({ nickname: roomState.nickname, status: currentStatus() })
+  roomState.channel.track({ nickname: roomState.nickname, status: currentStatus(), skipStreak: roomState.skipStreak })
 }
 
 function updateRoomStatus() {
@@ -128,6 +129,12 @@ function renderParticipants() {
     statusSpan.textContent = STATUS_LABELS[presence.status] || presence.status
     row.appendChild(nameSpan)
     row.appendChild(statusSpan)
+    if (shouldFlagOverworking(presence.skipStreak || 0)) {
+      var badgeSpan = document.createElement('span')
+      badgeSpan.className = 'room-overworking-badge'
+      badgeSpan.textContent = 'Skipped ' + presence.skipStreak + ' breaks'
+      row.appendChild(badgeSpan)
+    }
     elRoomParticipants.appendChild(row)
   })
 }
@@ -241,6 +248,10 @@ function roomCelebrate(completedPhase) {
 
 function onRoomSessionComplete() {
   roomState.celebratedFor = roomState.timerRow.started_at
+  if (state.sessionType === 'short-break' || state.sessionType === 'long-break') {
+    roomState.skipStreak = 0
+    trackPresence()
+  }
   roomCelebrate(state.sessionType)
   roomAttemptAdvance()
 }
@@ -346,6 +357,7 @@ elBtnRoomLeave.addEventListener('click', function () {
   roomState.timerRow = null
   roomState.tickInterval = null
   roomState.celebratedFor = null
+  roomState.skipStreak = 0
   elRoomParticipants.innerHTML = ''
   elRoomPanel.classList.remove('in-room')
 

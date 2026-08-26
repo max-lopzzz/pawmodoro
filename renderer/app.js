@@ -311,6 +311,8 @@ elBtnReset.addEventListener('click', function () {
 elBtnSkipBreak.addEventListener('click', function () {
   if (state.timerState === 'complete') return
   if (typeof roomIsActive === 'function' && roomIsActive()) {
+    roomState.skipStreak += 1
+    trackPresence()
     roomAttemptAdvance()
     return
   }
