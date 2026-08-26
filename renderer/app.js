@@ -231,10 +231,16 @@ function showCelebration() {
 }
 
 function advanceSession() {
+  clearInterval(state.interval)
+  state.interval = null
   var next = getNextSession(state.sessionType, state.completedWork, config)
   state.sessionType = next.type
   state.secondsLeft = next.type === 'work' ? getWorkDuration() : next.duration
-  state.timerState = 'idle'
+  if (state.sessionType === 'work') {
+    state.sessionWorkMinutes = Math.round(state.secondsLeft / 60)
+  }
+  state.timerState = 'running'
+  state.interval = setInterval(tick, 1000)
   render()
 }
 
