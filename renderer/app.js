@@ -85,6 +85,7 @@ var elCatAmbient   = document.getElementById('cat-ambient')
 var elDots         = document.getElementById('session-dots')
 var elBtnStart     = document.getElementById('btn-start')
 var elBtnReset     = document.getElementById('btn-reset')
+var elBtnSkipBreak = document.getElementById('btn-skip-break')
 var elBtnSettings  = document.getElementById('btn-settings')
 var elBtnSetClose  = document.getElementById('btn-settings-close')
 var elBtnSave      = document.getElementById('btn-save')
@@ -133,6 +134,11 @@ function render() {
 
   // Start/Pause button label
   elBtnStart.textContent = state.timerState === 'running' ? 'Pause' : 'Start'
+
+  // Skip Break button — visible only during a break phase
+  elBtnSkipBreak.style.display =
+    (state.sessionType === 'short-break' || state.sessionType === 'long-break')
+      ? 'inline-block' : 'none'
 
   // Ambient cat GIF
   var gifFile = getAmbientGif(state.sessionType, state.timerState)
@@ -299,6 +305,14 @@ elBtnReset.addEventListener('click', function () {
     ? getWorkDuration()
     : config[state.sessionType === 'short-break' ? 'shortBreak' : 'longBreak'] * 60
   render()
+})
+
+elBtnSkipBreak.addEventListener('click', function () {
+  if (typeof roomIsActive === 'function' && roomIsActive()) {
+    roomAttemptAdvance()
+    return
+  }
+  advanceSession()
 })
 
 // ── Settings ───────────────────────────────────
