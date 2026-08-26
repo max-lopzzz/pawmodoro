@@ -162,6 +162,7 @@ function applyRoomTimerRow(row) {
     row.phase !== prev.phase &&
     roomState.celebratedFor !== prev.started_at
   var completedPhase = prev ? prev.phase : null
+  var now = Date.now()
 
   roomState.timerRow = row
   state.sessionType = row.phase
@@ -171,10 +172,19 @@ function applyRoomTimerRow(row) {
     durationSeconds: row.duration_seconds,
     startedAt: row.started_at,
     isRunning: row.is_running
-  }, Date.now())
+  }, now)
 
   if (isAdvance) {
     roomState.celebratedFor = prev.started_at
+    var prevExpiredNaturally = computeSecondsLeft({
+      durationSeconds: prev.duration_seconds,
+      startedAt: prev.started_at,
+      isRunning: prev.is_running
+    }, now) <= 0
+    if (prevExpiredNaturally && (completedPhase === 'short-break' || completedPhase === 'long-break')) {
+      roomState.skipStreak = 0
+      trackPresence()
+    }
     roomCelebrate(completedPhase)
   }
 
