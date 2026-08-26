@@ -3,6 +3,8 @@ const {
   deriveStatus,
   computeSecondsLeft,
   computeAdvancePayload,
+  shouldFlagOverworking,
+  canNudge,
   JOIN_CODE_ALPHABET,
   JOIN_CODE_LENGTH
 } = require('../renderer/rooms-logic')
@@ -94,5 +96,35 @@ describe('computeAdvancePayload', () => {
     var row = { phase: 'short-break', completedWork: 2 }
     var payload = computeAdvancePayload(row, config, 900)
     expect(payload).toEqual({ phase: 'work', durationSeconds: 900, completedWork: 2 })
+  })
+})
+
+describe('shouldFlagOverworking', () => {
+  test('returns false below the threshold', () => {
+    expect(shouldFlagOverworking(0)).toBe(false)
+    expect(shouldFlagOverworking(1)).toBe(false)
+  })
+
+  test('returns true at and above the threshold', () => {
+    expect(shouldFlagOverworking(2)).toBe(true)
+    expect(shouldFlagOverworking(5)).toBe(true)
+  })
+})
+
+describe('canNudge', () => {
+  test('returns true when no prior nudge has been sent', () => {
+    expect(canNudge(null, Date.now(), 30000)).toBe(true)
+    expect(canNudge(undefined, Date.now(), 30000)).toBe(true)
+  })
+
+  test('returns false within the cooldown window', () => {
+    var now = Date.now()
+    expect(canNudge(now - 10000, now, 30000)).toBe(false)
+  })
+
+  test('returns true once the cooldown window has elapsed', () => {
+    var now = Date.now()
+    expect(canNudge(now - 30000, now, 30000)).toBe(true)
+    expect(canNudge(now - 40000, now, 30000)).toBe(true)
   })
 })

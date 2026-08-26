@@ -33,12 +33,23 @@ function computeAdvancePayload(row, config, workDurationSeconds) {
   }
 }
 
+function shouldFlagOverworking(skipStreak) {
+  return skipStreak >= 2
+}
+
+function canNudge(lastNudgeAt, now, cooldownMs) {
+  if (!lastNudgeAt) return true
+  return (now - lastNudgeAt) >= cooldownMs
+}
+
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
     generateJoinCode,
     deriveStatus,
     computeSecondsLeft,
     computeAdvancePayload,
+    shouldFlagOverworking,
+    canNudge,
     JOIN_CODE_ALPHABET,
     JOIN_CODE_LENGTH
   }
