@@ -135,9 +135,10 @@ function render() {
   // Start/Pause button label
   elBtnStart.textContent = state.timerState === 'running' ? 'Pause' : 'Start'
 
-  // Skip Break button — visible only during a break phase
+  // Skip Break button — visible only during a break phase, and hidden while
+  // the completion celebration is showing (sessionType hasn't advanced yet)
   elBtnSkipBreak.style.display =
-    (state.sessionType === 'short-break' || state.sessionType === 'long-break')
+    (state.sessionType === 'short-break' || state.sessionType === 'long-break') && state.timerState !== 'complete'
       ? 'inline-block' : 'none'
 
   // Ambient cat GIF
@@ -308,6 +309,7 @@ elBtnReset.addEventListener('click', function () {
 })
 
 elBtnSkipBreak.addEventListener('click', function () {
+  if (state.timerState === 'complete') return
   if (typeof roomIsActive === 'function' && roomIsActive()) {
     roomAttemptAdvance()
     return
