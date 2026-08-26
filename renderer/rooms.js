@@ -136,7 +136,7 @@ function renderParticipants() {
 
 function applyRoomTimerRow(row) {
   var prev = roomState.timerRow
-  var isAdvance = prev && prev.is_running && !row.is_running &&
+  var isAdvance = prev && prev.is_running &&
     row.phase !== prev.phase &&
     roomState.celebratedFor !== prev.started_at
   var completedPhase = prev ? prev.phase : null
