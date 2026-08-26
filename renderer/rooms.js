@@ -288,18 +288,22 @@ function enterRoom(row) {
   elRoomCodeValue.textContent = row.join_code
   elRoomPanel.classList.add('in-room')
   clearRoomError()
+  markFreeTrialUsed()
 }
 
 elBtnRoomCreate.addEventListener('click', function () {
   clearRoomError()
-  ensureAnonSession().then(function () {
-    var code = generateJoinCode()
-    return supabaseClient.from('rooms').insert({ join_code: code }).select().single().then(function (result) {
-      if (result.error) {
-        showRoomError('Could not create room. Try again.')
-        return
-      }
-      enterRoom(result.data)
+  ensureAnonSession().then(function (session) {
+    return ensureRoomAccess(session.user.id).then(function (allowed) {
+      if (!allowed) return
+      var code = generateJoinCode()
+      return supabaseClient.from('rooms').insert({ join_code: code }).select().single().then(function (result) {
+        if (result.error) {
+          showRoomError('Could not create room. Try again.')
+          return
+        }
+        enterRoom(result.data)
+      })
     })
   }).catch(function () {
     showRoomError('Could not connect. Check your connection.')
@@ -310,13 +314,16 @@ elBtnRoomJoin.addEventListener('click', function () {
   clearRoomError()
   var code = elInputJoinCode.value.trim().toUpperCase()
   if (!code) return
-  ensureAnonSession().then(function () {
-    return supabaseClient.from('rooms').select().eq('join_code', code).single().then(function (result) {
-      if (result.error || !result.data) {
-        showRoomError('Room not found.')
-        return
-      }
-      enterRoom(result.data)
+  ensureAnonSession().then(function (session) {
+    return ensureRoomAccess(session.user.id).then(function (allowed) {
+      if (!allowed) return
+      return supabaseClient.from('rooms').select().eq('join_code', code).single().then(function (result) {
+        if (result.error || !result.data) {
+          showRoomError('Room not found.')
+          return
+        }
+        enterRoom(result.data)
+      })
     })
   }).catch(function () {
     showRoomError('Could not connect. Check your connection.')
