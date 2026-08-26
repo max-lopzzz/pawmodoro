@@ -210,7 +210,7 @@ function roomAttemptAdvance() {
     config,
     workDuration
   )
-  supabaseClient.from('rooms')
+  var query = supabaseClient.from('rooms')
     .update({
       phase: payload.phase,
       duration_seconds: payload.durationSeconds,
@@ -220,10 +220,12 @@ function roomAttemptAdvance() {
     })
     .eq('id', roomState.roomId)
     .eq('phase', row.phase)
-    .eq('started_at', row.started_at)
-    .then(function (result) {
-      if (result.error) showRoomError('Could not update the timer. Try again.')
-    })
+  query = (row.started_at === null)
+    ? query.is('started_at', null)
+    : query.eq('started_at', row.started_at)
+  query.then(function (result) {
+    if (result.error) showRoomError('Could not update the timer. Try again.')
+  })
 }
 
 function roomCelebrate(completedPhase) {
