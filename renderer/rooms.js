@@ -214,8 +214,8 @@ function roomAttemptAdvance() {
     .update({
       phase: payload.phase,
       duration_seconds: payload.durationSeconds,
-      started_at: null,
-      is_running: false,
+      started_at: new Date().toISOString(),
+      is_running: true,
       completed_work: payload.completedWork
     })
     .eq('id', roomState.roomId)
