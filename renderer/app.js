@@ -193,6 +193,25 @@ function playChime() {
   }
 }
 
+function playNudgeTone() {
+  try {
+    var ctx = getAudioCtx()
+    var osc = ctx.createOscillator()
+    var gain = ctx.createGain()
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    osc.frequency.value = 520
+    osc.type = 'sine'
+    gain.gain.setValueAtTime(0, ctx.currentTime)
+    gain.gain.linearRampToValueAtTime(0.25, ctx.currentTime + 0.05)
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3)
+    osc.start(ctx.currentTime)
+    osc.stop(ctx.currentTime + 0.3)
+  } catch (e) {
+    // AudioContext unavailable — silently skip
+  }
+}
+
 // ── Session complete ───────────────────────────
 
 function onSessionComplete() {

@@ -855,3 +855,38 @@ body.dark .room-participant-row { border-bottom-color: rgba(255, 255, 255, 0.08)
   border-radius: 4px;
   padding: 2px 6px;
 }
+
+.btn-nudge {
+  font-size: 12px;
+  padding: 4px 10px;
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-nudge-emphasized {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+.nudge-toast {
+  position: fixed;
+  bottom: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--accent);
+  color: #ffffff;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  z-index: 200;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+.nudge-toast.visible {
+  opacity: 1;
+}

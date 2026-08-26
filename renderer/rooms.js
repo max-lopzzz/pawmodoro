@@ -19,6 +19,8 @@ var supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SU
 
 // ── Room state ──────────────────────────────────
 
+var NUDGE_COOLDOWN_MS = 30000
+
 var roomState = {
   roomId: null,
   joinCode: null,
@@ -29,7 +31,9 @@ var roomState = {
   timerRow: null,
   tickInterval: null,
   celebratedFor: null,
-  skipStreak: 0
+  skipStreak: 0,
+  myPresenceKey: null,
+  lastNudgeAt: {}
 }
 
 // ── DOM refs (room feature) ─────────────────────
@@ -42,6 +46,7 @@ var elRoomError        = document.getElementById('room-error')
 var elRoomCodeValue    = document.getElementById('room-code-value')
 var elRoomParticipants = document.getElementById('room-participants')
 var elBtnRoomLeave     = document.getElementById('btn-room-leave')
+var elNudgeToast       = document.getElementById('nudge-toast')
 
 // ── Nickname persistence ────────────────────────
 
@@ -129,11 +134,21 @@ function renderParticipants() {
     statusSpan.textContent = STATUS_LABELS[presence.status] || presence.status
     row.appendChild(nameSpan)
     row.appendChild(statusSpan)
-    if (shouldFlagOverworking(presence.skipStreak || 0)) {
+    var overworking = shouldFlagOverworking(presence.skipStreak || 0)
+    if (overworking) {
       var badgeSpan = document.createElement('span')
       badgeSpan.className = 'room-overworking-badge'
       badgeSpan.textContent = 'Skipped ' + presence.skipStreak + ' breaks'
       row.appendChild(badgeSpan)
+    }
+    if (key !== roomState.myPresenceKey) {
+      var nudgeBtn = document.createElement('button')
+      nudgeBtn.className = overworking ? 'btn-nudge btn-nudge-emphasized' : 'btn-nudge'
+      nudgeBtn.textContent = 'Nudge'
+      nudgeBtn.addEventListener('click', function () {
+        sendNudge(key)
+      })
+      row.appendChild(nudgeBtn)
     }
     elRoomParticipants.appendChild(row)
   })
@@ -256,11 +271,38 @@ function onRoomSessionComplete() {
   roomAttemptAdvance()
 }
 
+// ── Nudge ────────────────────────────────────────
+
+function sendNudge(targetKey) {
+  var now = Date.now()
+  if (!canNudge(roomState.lastNudgeAt[targetKey], now, NUDGE_COOLDOWN_MS)) return
+  roomState.lastNudgeAt[targetKey] = now
+  roomState.channel.send({
+    type: 'broadcast',
+    event: 'nudge',
+    payload: { targetKey: targetKey, from: roomState.nickname }
+  })
+}
+
+var nudgeToastTimeout = null
+
+function showNudgeToast(fromNickname) {
+  elNudgeToast.textContent = fromNickname + ' nudged you — take a break?'
+  elNudgeToast.classList.add('visible')
+  clearTimeout(nudgeToastTimeout)
+  nudgeToastTimeout = setTimeout(function () {
+    elNudgeToast.classList.remove('visible')
+  }, 4000)
+  playNudgeTone()
+}
+
 // ── Create / Join / Leave ───────────────────────
 
 function subscribeToRoom(roomId) {
+  var presenceKey = roomId + ':' + Math.random().toString(36).slice(2)
+  roomState.myPresenceKey = presenceKey
   var channel = supabaseClient.channel('room:' + roomId, {
-    config: { presence: { key: roomId + ':' + Math.random().toString(36).slice(2) } }
+    config: { presence: { key: presenceKey } }
   })
 
   channel.on('presence', { event: 'sync' }, renderParticipants)
@@ -272,6 +314,12 @@ function subscribeToRoom(roomId) {
     filter: 'id=eq.' + roomId
   }, function (payload) {
     applyRoomTimerRow(payload.new)
+  })
+
+  channel.on('broadcast', { event: 'nudge' }, function (message) {
+    if (message.payload.targetKey === roomState.myPresenceKey) {
+      showNudgeToast(message.payload.from)
+    }
   })
 
   channel.subscribe(function (status) {
@@ -358,6 +406,8 @@ elBtnRoomLeave.addEventListener('click', function () {
   roomState.tickInterval = null
   roomState.celebratedFor = null
   roomState.skipStreak = 0
+  roomState.myPresenceKey = null
+  roomState.lastNudgeAt = {}
   elRoomParticipants.innerHTML = ''
   elRoomPanel.classList.remove('in-room')
 
