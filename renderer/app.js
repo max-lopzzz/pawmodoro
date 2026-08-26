@@ -85,6 +85,7 @@ var elCatAmbient   = document.getElementById('cat-ambient')
 var elDots         = document.getElementById('session-dots')
 var elBtnStart     = document.getElementById('btn-start')
 var elBtnReset     = document.getElementById('btn-reset')
+var elBtnSkipBreak = document.getElementById('btn-skip-break')
 var elBtnSettings  = document.getElementById('btn-settings')
 var elBtnSetClose  = document.getElementById('btn-settings-close')
 var elBtnSave      = document.getElementById('btn-save')
@@ -133,6 +134,12 @@ function render() {
 
   // Start/Pause button label
   elBtnStart.textContent = state.timerState === 'running' ? 'Pause' : 'Start'
+
+  // Skip Break button — visible only during a break phase, and hidden while
+  // the completion celebration is showing (sessionType hasn't advanced yet)
+  elBtnSkipBreak.style.display =
+    (state.sessionType === 'short-break' || state.sessionType === 'long-break') && state.timerState !== 'complete'
+      ? 'inline-block' : 'none'
 
   // Ambient cat GIF
   var gifFile = getAmbientGif(state.sessionType, state.timerState)
@@ -231,10 +238,16 @@ function showCelebration() {
 }
 
 function advanceSession() {
+  clearInterval(state.interval)
+  state.interval = null
   var next = getNextSession(state.sessionType, state.completedWork, config)
   state.sessionType = next.type
   state.secondsLeft = next.type === 'work' ? getWorkDuration() : next.duration
-  state.timerState = 'idle'
+  if (state.sessionType === 'work') {
+    state.sessionWorkMinutes = Math.round(state.secondsLeft / 60)
+  }
+  state.timerState = 'running'
+  state.interval = setInterval(tick, 1000)
   render()
 }
 
@@ -293,6 +306,15 @@ elBtnReset.addEventListener('click', function () {
     ? getWorkDuration()
     : config[state.sessionType === 'short-break' ? 'shortBreak' : 'longBreak'] * 60
   render()
+})
+
+elBtnSkipBreak.addEventListener('click', function () {
+  if (state.timerState === 'complete') return
+  if (typeof roomIsActive === 'function' && roomIsActive()) {
+    roomAttemptAdvance()
+    return
+  }
+  advanceSession()
 })
 
 // ── Settings ───────────────────────────────────

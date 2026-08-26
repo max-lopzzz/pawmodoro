@@ -136,7 +136,7 @@ function renderParticipants() {
 
 function applyRoomTimerRow(row) {
   var prev = roomState.timerRow
-  var isAdvance = prev && prev.is_running && !row.is_running &&
+  var isAdvance = prev && prev.is_running &&
     row.phase !== prev.phase &&
     roomState.celebratedFor !== prev.started_at
   var completedPhase = prev ? prev.phase : null
@@ -210,20 +210,22 @@ function roomAttemptAdvance() {
     config,
     workDuration
   )
-  supabaseClient.from('rooms')
+  var query = supabaseClient.from('rooms')
     .update({
       phase: payload.phase,
       duration_seconds: payload.durationSeconds,
-      started_at: null,
-      is_running: false,
+      started_at: new Date().toISOString(),
+      is_running: true,
       completed_work: payload.completedWork
     })
     .eq('id', roomState.roomId)
     .eq('phase', row.phase)
-    .eq('started_at', row.started_at)
-    .then(function (result) {
-      if (result.error) showRoomError('Could not update the timer. Try again.')
-    })
+  query = (row.started_at === null)
+    ? query.is('started_at', null)
+    : query.eq('started_at', row.started_at)
+  query.then(function (result) {
+    if (result.error) showRoomError('Could not update the timer. Try again.')
+  })
 }
 
 function roomCelebrate(completedPhase) {
