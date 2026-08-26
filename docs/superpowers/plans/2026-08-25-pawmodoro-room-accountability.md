@@ -153,7 +153,7 @@ Expected: PASS, all tests including the 6 new ones.
 
 Run: `npm test` (or `npx jest --watchman=false --forceExit --runInBand` if it hangs)
 
-Expected: all suites pass, count increased by exactly 6 (this task's new tests) over the baseline, zero regressions.
+Expected: all suites pass, count increased by exactly 5 (this task's new tests — 2 in `shouldFlagOverworking`, 3 in `canNudge`) over the baseline, zero regressions.
 
 - [ ] **Step 6: Commit**
 
