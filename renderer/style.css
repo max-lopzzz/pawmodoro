@@ -403,6 +403,7 @@ body.dark {
   font-size: 15px;
   text-align: center;
   background: var(--white);
+  color: var(--black);
   border-radius: 2px;
   -webkit-appearance: none;
   appearance: none;
@@ -760,6 +761,7 @@ body.dark .overlay-celebration { background: rgba(26, 26, 26, 0.88); }
   font-family: 'MorningBreeze', sans-serif;
   font-size: 15px;
   background: var(--white);
+  color: var(--black);
   border-radius: 2px;
 }
 
