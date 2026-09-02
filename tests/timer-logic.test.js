@@ -47,30 +47,54 @@ describe('getNextSession', () => {
 })
 
 describe('getAmbientGif', () => {
-  test('returns idle gif when timerState is idle', () => {
-    expect(getAmbientGif('work', 'idle')).toBe('Cat Idle.gif')
+  test('returns idle gif when timerState is idle (cat)', () => {
+    expect(getAmbientGif('work', 'idle', 'cat')).toBe('Cat Idle.gif')
   })
-  test('returns idle gif when timerState is complete', () => {
-    expect(getAmbientGif('work', 'complete')).toBe('Cat Idle.gif')
+  test('returns idle gif when timerState is complete (cat)', () => {
+    expect(getAmbientGif('work', 'complete', 'cat')).toBe('Cat Idle.gif')
   })
-  test('returns working gif for work+running', () => {
-    expect(getAmbientGif('work', 'running')).toBe('Cat Working.gif')
+  test('returns working gif for work+running (cat)', () => {
+    expect(getAmbientGif('work', 'running', 'cat')).toBe('Cat Working.gif')
   })
-  test('returns idle gif for work+paused', () => {
-    expect(getAmbientGif('work', 'paused')).toBe('Cat Idle.gif')
+  test('returns idle gif for work+paused (cat)', () => {
+    expect(getAmbientGif('work', 'paused', 'cat')).toBe('Cat Idle.gif')
   })
-  test('returns resting gif for short-break', () => {
-    expect(getAmbientGif('short-break', 'running')).toBe('Cat Resting.gif')
+  test('returns resting gif for short-break (cat)', () => {
+    expect(getAmbientGif('short-break', 'running', 'cat')).toBe('Cat Resting.gif')
   })
-  test('returns resting gif for long-break', () => {
-    expect(getAmbientGif('long-break', 'running')).toBe('Cat Resting.gif')
+  test('returns resting gif for long-break (cat)', () => {
+    expect(getAmbientGif('long-break', 'running', 'cat')).toBe('Cat Resting.gif')
+  })
+  test('returns the correct dog gif for every state', () => {
+    expect(getAmbientGif('work', 'idle', 'dog')).toBe('Perrito Idle.GIF')
+    expect(getAmbientGif('work', 'complete', 'dog')).toBe('Perrito Idle.GIF')
+    expect(getAmbientGif('work', 'running', 'dog')).toBe('Perrito Estudiando.GIF')
+    expect(getAmbientGif('work', 'paused', 'dog')).toBe('Perrito Idle.GIF')
+    expect(getAmbientGif('short-break', 'running', 'dog')).toBe('Perrito Descansando.GIF')
+    expect(getAmbientGif('long-break', 'running', 'dog')).toBe('Perrito Descansando.GIF')
+  })
+  test('returns the correct rabbit gif for every state', () => {
+    expect(getAmbientGif('work', 'idle', 'rabbit')).toBe('Conejito Idle.GIF')
+    expect(getAmbientGif('work', 'complete', 'rabbit')).toBe('Conejito Idle.GIF')
+    expect(getAmbientGif('work', 'running', 'rabbit')).toBe('Conejito trabajando.GIF')
+    expect(getAmbientGif('work', 'paused', 'rabbit')).toBe('Conejito Idle.GIF')
+    expect(getAmbientGif('short-break', 'running', 'rabbit')).toBe('Conejito Descansando.GIF')
+    expect(getAmbientGif('long-break', 'running', 'rabbit')).toBe('Conejito Descansando.GIF')
   })
 })
 
 describe('pickCelebrationGif', () => {
-  test('returns a string from CELEBRATION_GIFS', () => {
-    const gif = pickCelebrationGif()
-    expect(CELEBRATION_GIFS).toContain(gif)
+  test('returns a cat gif from CELEBRATION_GIFS.cat', () => {
+    const gif = pickCelebrationGif('cat')
+    expect(CELEBRATION_GIFS.cat).toContain(gif)
+  })
+  test('returns a dog gif from CELEBRATION_GIFS.dog', () => {
+    const gif = pickCelebrationGif('dog')
+    expect(CELEBRATION_GIFS.dog).toContain(gif)
+  })
+  test('returns a rabbit gif from CELEBRATION_GIFS.rabbit', () => {
+    const gif = pickCelebrationGif('rabbit')
+    expect(CELEBRATION_GIFS.rabbit).toContain(gif)
   })
 })
 

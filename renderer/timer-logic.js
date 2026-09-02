@@ -1,12 +1,32 @@
 var AMBIENT_GIFS = {
-  idle: 'Cat Idle.gif',
-  'work-running': 'Cat Working.gif',
-  'work-paused': 'Cat Idle.gif',
-  'short-break': 'Cat Resting.gif',
-  'long-break': 'Cat Resting.gif'
+  cat: {
+    idle: 'Cat Idle.gif',
+    'work-running': 'Cat Working.gif',
+    'work-paused': 'Cat Idle.gif',
+    'short-break': 'Cat Resting.gif',
+    'long-break': 'Cat Resting.gif'
+  },
+  dog: {
+    idle: 'Perrito Idle.GIF',
+    'work-running': 'Perrito Estudiando.GIF',
+    'work-paused': 'Perrito Idle.GIF',
+    'short-break': 'Perrito Descansando.GIF',
+    'long-break': 'Perrito Descansando.GIF'
+  },
+  rabbit: {
+    idle: 'Conejito Idle.GIF',
+    'work-running': 'Conejito trabajando.GIF',
+    'work-paused': 'Conejito Idle.GIF',
+    'short-break': 'Conejito Descansando.GIF',
+    'long-break': 'Conejito Descansando.GIF'
+  }
 }
 
-var CELEBRATION_GIFS = ['Cat Celebrating.gif']
+var CELEBRATION_GIFS = {
+  cat: ['Cat Celebrating.gif'],
+  dog: ['Perrito Celebrando.GIF'],
+  rabbit: ['Conejito Celebrando.GIF']
+}
 
 function formatTime(seconds) {
   var m = Math.floor(seconds / 60)
@@ -24,20 +44,22 @@ function getNextSession(currentType, completedWork, config) {
   return { type: 'short-break', duration: config.shortBreak * 60 }
 }
 
-function getAmbientGif(sessionType, timerState) {
+function getAmbientGif(sessionType, timerState, skin) {
+  var gifs = AMBIENT_GIFS[skin]
   if (timerState === 'idle' || timerState === 'complete') {
-    return AMBIENT_GIFS.idle
+    return gifs.idle
   }
   if (sessionType === 'work') {
-    return timerState === 'paused' ? AMBIENT_GIFS['work-paused'] : AMBIENT_GIFS['work-running']
+    return timerState === 'paused' ? gifs['work-paused'] : gifs['work-running']
   }
-  if (sessionType === 'short-break') return AMBIENT_GIFS['short-break']
-  if (sessionType === 'long-break') return AMBIENT_GIFS['long-break']
-  return AMBIENT_GIFS.idle
+  if (sessionType === 'short-break') return gifs['short-break']
+  if (sessionType === 'long-break') return gifs['long-break']
+  return gifs.idle
 }
 
-function pickCelebrationGif() {
-  return CELEBRATION_GIFS[Math.floor(Math.random() * CELEBRATION_GIFS.length)]
+function pickCelebrationGif(skin) {
+  var gifs = CELEBRATION_GIFS[skin]
+  return gifs[Math.floor(Math.random() * gifs.length)]
 }
 
 function getAccentColor(sessionType) {
