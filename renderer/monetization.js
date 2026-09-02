@@ -39,3 +39,15 @@ function ensureRoomAccess(userId) {
     })
   })
 }
+
+// ── Skin access gate ──────────────────────────────
+
+function ensureSkinAccess(userId) {
+  var client = ensureConfigured(userId)
+  return client.isEntitledTo('pawmodoro_pro').then(function (entitled) {
+    if (entitled) return true
+    return client.presentPaywall({}).catch(function () {}).then(function () {
+      return client.isEntitledTo('pawmodoro_pro')
+    })
+  })
+}
