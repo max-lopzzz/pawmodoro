@@ -735,6 +735,10 @@ body.dark .overlay-celebration { background: rgba(26, 26, 26, 0.88); }
   .todo-panel { min-width: 0; border-left: none; border-top: 2px solid var(--black); }
 }
 
+/* ── Web layout ───────────────────────────────── */
+
+body.web .titlebar { display: none; }
+
 /* ── Room panel ───────────────────────────────── */
 
 .room-panel {

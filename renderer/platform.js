@@ -6,4 +6,14 @@ window.platformControls = window.Capacitor
         window.Capacitor.nativePromise('Browser', 'open', { url: url })
       }
     }
-  : window.windowControls
+  : window.windowControls || {
+      minimize: function () {},
+      close: function () {},
+      openExternal: function (url) {
+        window.open(url, '_blank', 'noopener')
+      }
+    }
+
+if (!window.Capacitor && !window.windowControls) {
+  document.body.classList.add('web')
+}
