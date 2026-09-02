@@ -17,7 +17,8 @@ function saveConfig(config) {
 }
 
 function loadSkin() {
-  return localStorage.getItem('selected-skin') || 'cat'
+  var skin = localStorage.getItem('selected-skin')
+  return (skin === 'dog' || skin === 'rabbit') ? skin : 'cat'
 }
 
 function saveSkin(skin) {
