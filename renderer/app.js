@@ -16,6 +16,15 @@ function saveConfig(config) {
   localStorage.setItem('cfg-sessions', config.sessionsBeforeLongBreak)
 }
 
+function loadSkin() {
+  var skin = localStorage.getItem('selected-skin')
+  return (skin === 'dog' || skin === 'rabbit') ? skin : 'cat'
+}
+
+function saveSkin(skin) {
+  localStorage.setItem('selected-skin', skin)
+}
+
 function loadTasks() {
   try { return JSON.parse(localStorage.getItem('todo-tasks') || '[]') }
   catch (e) { return [] }
@@ -74,7 +83,8 @@ var state = {
   completedWork: 0,
   interval: null,
   activeTaskId: null,
-  sessionWorkMinutes: config.work
+  sessionWorkMinutes: config.work,
+  skin: loadSkin()
 }
 
 // ── DOM refs ───────────────────────────────────
@@ -100,6 +110,7 @@ var elInputLong    = document.getElementById('input-long-break')
 var elInputSessions = document.getElementById('input-sessions')
 var elActiveTaskLabel = document.getElementById('active-task-label')
 var elThemeSelect     = document.getElementById('select-theme')
+var elSkinOptions     = Array.prototype.slice.call(document.querySelectorAll('.skin-option'))
 
 // ── Work duration ──────────────────────────────
 
@@ -142,7 +153,7 @@ function render() {
       ? 'inline-block' : 'none'
 
   // Ambient cat GIF
-  var gifFile = getAmbientGif(state.sessionType, state.timerState)
+  var gifFile = getAmbientGif(state.sessionType, state.timerState, state.skin)
   var newSrc = '../assets/' + gifFile
   if (elCatAmbient.getAttribute('src') !== newSrc) {
     elCatAmbient.src = newSrc
@@ -234,7 +245,7 @@ function onSessionComplete() {
 }
 
 function showCelebration() {
-  var gif = pickCelebrationGif()
+  var gif = pickCelebrationGif(state.skin)
   elCatCelebr.src = '../assets/' + gif
   elOverlay.classList.add('visible')
 
@@ -348,6 +359,14 @@ elBtnSettings.addEventListener('click', function () {
   elThemeSelect.value = localStorage.getItem('theme-override') || 'auto'
   document.getElementById('room-panel').classList.remove('visible')
   elSettingsPanel.classList.add('visible')
+  updateSkinOptions()
+  ensureAnonSession().then(function (session) {
+    var client = ensureConfigured(session.user.id)
+    return client.isEntitledTo('pawmodoro_pro')
+  }).then(function (entitled) {
+    skinEntitled = entitled
+    updateSkinOptions()
+  }).catch(function () {})
 })
 
 elBtnSetClose.addEventListener('click', function () {
@@ -373,6 +392,47 @@ elBtnSave.addEventListener('click', function () {
 
   elSettingsPanel.classList.remove('visible')
   render()
+})
+
+// ── Skin selection ──────────────────────────────
+
+var SKIN_LABELS = { cat: 'Cat', dog: 'Dog', rabbit: 'Rabbit' }
+var skinEntitled = false
+
+function updateSkinOptions() {
+  elSkinOptions.forEach(function (btn) {
+    var skin = btn.getAttribute('data-skin')
+    var locked = skin !== 'cat' && !skinEntitled
+    btn.classList.toggle('selected', skin === state.skin)
+    btn.classList.toggle('locked', locked)
+    btn.textContent = locked ? SKIN_LABELS[skin] + ' 🔒' : SKIN_LABELS[skin]
+  })
+}
+
+function applySkin(skin) {
+  state.skin = skin
+  saveSkin(skin)
+  render()
+  updateSkinOptions()
+}
+
+elSkinOptions.forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    var skin = btn.getAttribute('data-skin')
+    if (skin === state.skin) return
+    if (skin === 'cat') {
+      applySkin(skin)
+      return
+    }
+    ensureAnonSession().then(function (session) {
+      return ensureSkinAccess(session.user.id)
+    }).then(function (allowed) {
+      if (allowed) {
+        skinEntitled = true
+        applySkin(skin)
+      }
+    }).catch(function () {})
+  })
 })
 
 // ── Window controls ────────────────────────────
