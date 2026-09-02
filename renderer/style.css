@@ -455,6 +455,35 @@ body.dark {
   outline-offset: 2px;
 }
 
+/* ── Skin picker ──────────────────────────────── */
+
+.skin-picker {
+  display: flex;
+  gap: 6px;
+}
+
+.skin-option {
+  font-size: 12px;
+  padding: 4px 8px;
+  border: 1px solid var(--black);
+  background: transparent;
+  color: var(--black);
+  cursor: pointer;
+  border-radius: 3px;
+  font-family: 'MorningBreeze', sans-serif;
+  white-space: nowrap;
+}
+
+.skin-option.selected {
+  background: var(--accent);
+  color: #ffffff;
+  border-color: var(--accent);
+}
+
+.skin-option.locked {
+  opacity: 0.6;
+}
+
 /* ── Todo panel ───────────────────────────────── */
 
 .todo-panel {
