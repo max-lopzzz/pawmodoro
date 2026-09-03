@@ -5,3 +5,7 @@ contextBridge.exposeInMainWorld('windowControls', {
   minimize: () => ipcRenderer.send('window-minimize'),
   openExternal: (url) => ipcRenderer.send('open-external', url)
 })
+
+contextBridge.exposeInMainWorld('authBridge', {
+  onDeepLink: (callback) => ipcRenderer.on('auth-deep-link', (_event, url) => callback(url))
+})

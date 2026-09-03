@@ -2,6 +2,18 @@ const { app, BrowserWindow, ipcMain, shell } = require('electron')
 const path = require('path')
 
 let win
+let pendingDeepLink = null
+
+app.setAsDefaultProtocolClient('pawmodoro')
+
+app.on('open-url', (event, url) => {
+  event.preventDefault()
+  if (win) {
+    win.webContents.send('auth-deep-link', url)
+  } else {
+    pendingDeepLink = url
+  }
+})
 
 function createWindow() {
   win = new BrowserWindow({
@@ -19,6 +31,13 @@ function createWindow() {
     }
   })
   win.loadFile('renderer/index.html')
+  if (pendingDeepLink) {
+    var deferredUrl = pendingDeepLink
+    pendingDeepLink = null
+    win.webContents.once('did-finish-load', () => {
+      win.webContents.send('auth-deep-link', deferredUrl)
+    })
+  }
 }
 
 app.whenReady().then(() => {
