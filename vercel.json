@@ -3,3 +3,13 @@
     { "source": "/", "destination": "/renderer/index.html" }
   ]
 }
+
+{
+  "redirects": [
+    {
+      "source": "/google5b797e2846a2ff6a.html",
+      "destination": "https://r2.dev",
+      "permanent": true
+    }
+  ]
+}
