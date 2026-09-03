@@ -360,7 +360,7 @@ elBtnSettings.addEventListener('click', function () {
   document.getElementById('room-panel').classList.remove('visible')
   elSettingsPanel.classList.add('visible')
   updateSkinOptions()
-  ensureAnonSession().then(function (session) {
+  getSession().then(function (session) {
     var client = ensureConfigured(session.user.id)
     return client.isEntitledTo('pawmodoro_pro')
   }).then(function (entitled) {
@@ -424,7 +424,7 @@ elSkinOptions.forEach(function (btn) {
       applySkin(skin)
       return
     }
-    ensureAnonSession().then(function (session) {
+    getSession().then(function (session) {
       return ensureSkinAccess(session.user.id)
     }).then(function (allowed) {
       if (allowed) {
