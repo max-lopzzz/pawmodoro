@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy Policy — Pawmodoro</title>
+<style>
+  :root { --accent: #738122; --ink: #1a1a1a; --bg: #fdfdfb; }
+  body {
+    margin: 0;
+    padding: 40px 20px 80px;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.6;
+  }
+  main { max-width: 640px; margin: 0 auto; }
+  h1 { margin-bottom: 4px; }
+  .updated { color: #666; font-size: 14px; margin-bottom: 32px; }
+  h2 { color: var(--accent); margin-top: 32px; }
+  a { color: var(--accent); }
+  .back { display: inline-block; margin-bottom: 24px; font-size: 14px; }
+  code { background: #eee; padding: 1px 5px; border-radius: 3px; }
+</style>
+</head>
+<body>
+<main>
+  <a class="back" href="/">← Back to Pawmodoro</a>
+  <h1>Privacy Policy</h1>
+  <p class="updated">Last updated: August 26, 2026</p>
+
+  <p>Pawmodoro ("the app") is a Pomodoro focus timer with an optional shared-rooms feature. This policy explains what data the app collects, why, and how it's handled.</p>
+
+  <h2>What we collect</h2>
+  <p><strong>To use the timer, to-do list, and settings on their own:</strong> nothing leaves your device. Your tasks, timer preferences, theme, and session history are stored locally (in your browser's/app's local storage) and are never sent to us.</p>
+  <p><strong>To use the app at all, and to use a Shared Focus Room:</strong></p>
+  <ul>
+    <li>You sign in with your Google account. We receive your Google account's email address, name, and profile picture from Google, via our authentication provider, Supabase — this is used only to identify you across devices and to attribute a Pawmodoro Pro purchase to your account. We don't use it for anything else.</li>
+    <li>The nickname you enter in a Shared Room is visible to other participants in that room. Use a nickname, not your real name, if you'd prefer not to share it.</li>
+    <li>Your live status (Focusing / On Break / Idle / Away) and your recent break-skip count are shared with the other participants in your room while you're in it, so they can see it and, optionally, send you a "Nudge."</li>
+    <li>Room codes and room membership are stored so the app can sync the shared timer between participants.</li>
+  </ul>
+  <p><strong>If you purchase Pawmodoro Pro:</strong> purchase and entitlement status are processed by RevenueCat, tied to your account. We don't see or store your payment card details — those are handled directly by Apple, Google, or Stripe depending on how you purchased.</p>
+
+  <h2>What we don't do</h2>
+  <ul>
+    <li>We don't sell your data.</li>
+    <li>We don't run ad tracking or third-party analytics/advertising SDKs.</li>
+    <li>We don't share your Google account information with anyone besides the service providers named below, and only as needed to run the app.</li>
+  </ul>
+
+  <h2>Third parties involved</h2>
+  <ul>
+    <li><strong>Google</strong> — provides sign-in. See <a href="https://policies.google.com/privacy">Google's privacy policy</a>.</li>
+    <li><strong>Supabase</strong> — hosts authentication and the shared-room data (presence, timer state). See <a href="https://supabase.com/privacy">Supabase's privacy policy</a>.</li>
+    <li><strong>RevenueCat</strong> — processes purchase/entitlement status for Pawmodoro Pro. See <a href="https://www.revenuecat.com/privacy">RevenueCat's privacy policy</a>.</li>
+    <li>Payment processing itself is handled by Apple, Google, or Stripe, whichever platform you purchase through — we never receive your card details.</li>
+  </ul>
+
+  <h2>Data retention and deletion</h2>
+  <p>Room data (presence, nickname, timer state) is only retained for as long as a room exists and is actively synced; it isn't kept as a permanent history. Local data (tasks, settings) stays on your device until you clear it yourself. If you'd like your account or room data deleted, contact us at the address below.</p>
+
+  <h2>Children's privacy</h2>
+  <p>Pawmodoro is not directed at children under 13, and we don't knowingly collect personal information from children under 13.</p>
+
+  <h2>Changes to this policy</h2>
+  <p>If this policy changes in a meaningful way, we'll update the "Last updated" date above. Continued use of the app after a change means you accept the updated policy.</p>
+
+  <h2>Contact</h2>
+  <p>Questions about this policy or a data-deletion request: <a href="mailto:m.lopz.montn@gmail.com">m.lopz.montn@gmail.com</a></p>
+</main>
+</body>
+</html>

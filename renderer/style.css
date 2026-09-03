@@ -765,6 +765,23 @@ body.dark .overlay-celebration { background: rgba(26, 26, 26, 0.88); }
 
 body.web .titlebar { display: none; }
 
+.web-footer-links { display: none; }
+
+body.web .web-footer-links {
+  display: block;
+  position: fixed;
+  bottom: 8px;
+  right: 12px;
+  font-size: 12px;
+  opacity: 0.6;
+  z-index: 1;
+}
+
+body.web .web-footer-links a {
+  color: inherit;
+  text-decoration: underline;
+}
+
 /* ── Auth gate ────────────────────────────────── */
 
 .auth-view {
