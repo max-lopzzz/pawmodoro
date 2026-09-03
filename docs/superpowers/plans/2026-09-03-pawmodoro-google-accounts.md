@@ -6,7 +6,7 @@
 
 **Architecture:** Electron's main process gains a custom URL scheme (`pawmodoro://`) and forwards the OAuth redirect to the renderer over IPC; a new `renderer/auth.js` owns the Supabase client, the sign-in/sign-out flow, and the boot-time session check; a new full-screen sign-in view blocks the existing app until that check passes; the existing `ensureAnonSession()` (which every room/skin-purchase call site used to lazily create an anonymous session) is replaced by a simpler `getSession()`, since mandatory login means a real session always already exists by the time any of those call sites run.
 
-**Tech Stack:** `@supabase/supabase-js`'s OAuth methods (already integrated), a new `@capacitor/app` devDependency (vendored for its browser bundle, same treatment as every other Capacitor/RevenueCat/Supabase package in this project), Electron's `app.setAsDefaultProtocolClient`/`open-url` for deep linking.
+**Tech Stack:** `@supabase/supabase-js`'s OAuth methods (already integrated), Electron's `app.setAsDefaultProtocolClient`/`open-url` for deep linking, Capacitor's native-bridge `window.Capacitor.addListener(plugin, event, callback)` primitive for the iOS deep-link event (no new npm dependency — see the corrected constraint below).
 
 **Spec:** [docs/superpowers/specs/2026-09-03-pawmodoro-google-accounts-design.md](../specs/2026-09-03-pawmodoro-google-accounts-design.md)
 
@@ -18,7 +18,7 @@
   - `supabase.auth.signInWithOAuth({ provider, options: { redirectTo, skipBrowserRedirect: true } })` resolves `{ data: { url }, error }` without navigating anywhere, confirmed in `@supabase/auth-js`'s shipped type definitions.
   - `supabase.auth.exchangeCodeForSession(code)` completes a PKCE OAuth flow given the `code` query parameter from the redirect.
   - `User.is_anonymous` is a real `boolean` field on the session's user object (confirmed in `@supabase/auth-js`'s shipped `User` interface) — this is how the boot check tells a real Google-authenticated user apart from the old anonymous-session model.
-  - `@capacitor/app`'s `dist/plugin.js` is a genuine browser-global UMD-style bundle (like `@supabase/supabase-js`'s and `@revenuecat/purchases-js`'s already-vendored bundles) — confirmed by reading its actual IIFE header and the real `registerPlugin`/`addListener` implementation in `@capacitor/core`'s own `dist/capacitor.js`. `addListener('appUrlOpen', callback)` internally calls Capacitor's `nativeCallback` bridge function — the same underlying mechanism `renderer/platform.js`'s existing `Browser.open` call already uses via `nativePromise`, confirmed by reading the actual bridge source rather than assumed. Capacitor's core bridge (`window.Capacitor`) is already injected automatically into the native iOS WebView by Capacitor's own tooling before any of this app's own scripts run — this project does not need to vendor Capacitor's core, only this one plugin's bundle.
+  - **Correction found during Task 2's live verification (superseding this plan's original approach):** vendoring `@capacitor/app`'s `dist/plugin.js` was tried and is genuinely broken outside a native context — loading it via a plain `<script>` tag throws `ReferenceError: capacitorExports is not defined`, because that file's UMD wrapper expects a *second* script (`@capacitor/core`'s own `dist/capacitor.js`) to have already run and defined the global `var capacitorExports = ...` — a file this project deliberately never vendors. The correct, verified mechanism needs no plugin-specific bundle at all: `@capacitor/ios/Capacitor/Capacitor/assets/native-bridge.js` (the actual native bridge iOS injects into the WebView before any of this app's own scripts run — confirmed by reading its shipped source directly, not assumed) defines `cap.addListener = (pluginName, eventName, callback) => { const callbackId = cap.nativeCallback(pluginName, 'addListener', { eventName }, callback); return { remove: ... } }`. So `window.Capacitor.addListener('App', 'appUrlOpen', callback)` is a real, native-bridge-provided primitive — it internally calls `nativeCallback`, the exact sibling of the `nativePromise` mechanism `renderer/platform.js`'s existing `Browser.open` call already uses (`window.Capacitor.nativePromise('Browser', 'open', { url })`). No `@capacitor/app` npm dependency, no vendored file, no plugin registration needed — just this one direct call in `renderer/auth.js`, gated on `window.Capacitor` existing exactly like `platform.js` already gates its own native calls.
 - **Google Cloud Console's Authorized Redirect URI is Supabase's own fixed callback URL** (`https://<project-ref>.supabase.co/auth/v1/callback`), not the app's custom scheme — this is the user's own dashboard configuration, not something this plan's code touches, but it's worth restating here since a wrong value there breaks everything downstream silently.
 - This app's `package.json` description scopes it to macOS — only macOS's `open-url` deep-link mechanism is implemented; Windows/Linux (`second-instance` + `requestSingleInstanceLock`) is out of scope.
 - This app has never been packaged into a distributable `.app` (only ever run via `npm start`/`electron .`) — `app.setAsDefaultProtocolClient` is less reliable for an unpackaged dev run than a packaged one. This is a real, accepted risk to how far this plan's live verification can go, not something this plan's tasks attempt to fix.
@@ -191,27 +191,16 @@ git commit -m "feat: register pawmodoro:// deep link and forward it to the rende
 
 ---
 
-### Task 2: Sign-in view UI and Capacitor plugin vendoring
+### Task 2: Sign-in view UI
 
 **Files:**
 - Modify: `renderer/index.html`
 - Modify: `renderer/style.css`
-- Create: `renderer/capacitor-app.js` (vendored)
-- Modify: `package.json`
 
 **Interfaces:**
 - Produces: the DOM elements `#auth-view`, `#auth-error`, `#btn-sign-in-google`, `#btn-sign-out` — Task 3 (`renderer/auth.js`) looks these up by ID. `body.signed-in` is the CSS class that hides `#auth-view` — Task 3 toggles it. The `auth.js` `<script>` tag itself is added to `renderer/index.html` in this task even though Task 3 hasn't created that file yet — the browser will show one 404 for that tag until Task 3 lands, exactly as already accepted in this project's history (the cosmetic-skins feature's Settings-picker task did the same thing for its own follow-up file) — a 404 on one `<script>` tag doesn't block the other tags from loading and running in order.
 
-- [ ] **Step 1: Vendor the Capacitor App plugin**
-
-```bash
-npm install --save-dev @capacitor/app
-cp node_modules/@capacitor/app/dist/plugin.js renderer/capacitor-app.js
-```
-
-This is a small (~1.8KB), genuine browser-global bundle — confirmed by reading it directly: it defines `var capacitorApp = (function (exports, core) { ... })({}, capacitorExports)`, depending on the `capacitorExports`/`window.Capacitor` global that Capacitor's own native iOS tooling already injects before this app's scripts run (not something this project vendors itself). Loading this file exposes `window.capacitorApp.App`, the plugin object Task 3 calls `addListener` on.
-
-- [ ] **Step 2: Add the sign-in view and sign-out button markup**
+- [ ] **Step 1: Add the sign-in view and sign-out button markup**
 
 Current (`renderer/index.html`, the top of `<body>`, right after the opening tag):
 ```html
@@ -254,7 +243,7 @@ Replace with:
   <div class="room-panel" id="room-panel">
 ```
 
-- [ ] **Step 3: Update the script tags**
+- [ ] **Step 2: Update the script tags**
 
 Current (`renderer/index.html`, the closing script block):
 ```html
@@ -284,7 +273,6 @@ Replace with:
   <script src="supabase.js"></script>
   <script src="revenuecat-config.js"></script>
   <script src="purchases.js"></script>
-  <script src="capacitor-app.js"></script>
   <script src="platform.js"></script>
   <script src="auth.js"></script>
   <script src="app.js"></script>
@@ -294,9 +282,9 @@ Replace with:
 </body>
 ```
 
-`auth.js` doesn't exist until Task 3 — see the note in this task's Interfaces section above; this is expected and harmless. `capacitor-app.js` slots in next to the other vendored SDK bundles (`supabase.js`, `purchases.js`), before `platform.js` since `platform.js` doesn't depend on it but keeping all vendored bundles grouped together matches this file's existing organization. `auth.js` loads after `platform.js` (it calls `window.platformControls.openExternal`) and before `app.js`/`rooms.js` (both of which will call `auth.js`'s `getSession()` once Task 4 lands).
+`auth.js` doesn't exist until Task 3 — see the note in this task's Interfaces section above; this is expected and harmless. No `capacitor-app.js` tag is added — see the corrected Global Constraints note: the iOS deep-link listener uses Capacitor's native-bridge `window.Capacitor.addListener` primitive directly (Task 3), needing no vendored plugin bundle. `auth.js` loads after `platform.js` (it calls `window.platformControls.openExternal`) and before `app.js`/`rooms.js` (both of which will call `auth.js`'s `getSession()` once Task 4 lands).
 
-- [ ] **Step 4: Style the sign-in view and sign-out button**
+- [ ] **Step 3: Style the sign-in view and sign-out button**
 
 Add to `renderer/style.css`, as a new section right after the `/* ── Web layout ───` section (search for `body.web .titlebar { display: none; }` — insert immediately after that line, before the following `/* ── Room panel ───` comment):
 ```css
@@ -389,21 +377,21 @@ Add to `renderer/style.css`, right after the `.btn-save:hover` rule:
 
 `z-index: 300` puts the auth gate above every other overlay in this app (the highest existing value is `.nudge-toast`'s `200`) — since the auth gate is meant to block literally everything else, it must render on top of anything that could otherwise appear.
 
-- [ ] **Step 5: Manual verification**
+- [ ] **Step 4: Manual verification**
 
 Serve the repo locally (e.g. `python3 -m http.server` from the repo root, then open `renderer/index.html`) and confirm: the sign-in view covers the whole screen (since `body` doesn't have the `signed-in` class yet, nothing toggles it away — this is expected at this point in the plan, `auth.js` doesn't exist yet to ever add that class). Confirm no layout is broken, the mascot image loads, and the "Sign in with Google" button is visible (it won't do anything yet — no handler is wired until Task 3). Check the browser console: expect exactly one 404, for `auth.js` (per this task's Interfaces note) — no other errors.
 
-- [ ] **Step 6: Run the full test suite**
+- [ ] **Step 5: Run the full test suite**
 
 Run: `npm test` (or with the flags from Task 1 Step 4 if it hangs)
 
 Expected: 87/87, unchanged.
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
-git add renderer/index.html renderer/style.css renderer/capacitor-app.js package.json package-lock.json
-git commit -m "feat: add sign-in view UI and vendor the Capacitor App plugin"
+git add renderer/index.html renderer/style.css
+git commit -m "feat: add sign-in view UI"
 ```
 
 ---
@@ -414,7 +402,7 @@ git commit -m "feat: add sign-in view UI and vendor the Capacitor App plugin"
 - Create: `renderer/auth.js`
 
 **Interfaces:**
-- Consumes: `window.authBridge.onDeepLink` (Task 1), the DOM elements from Task 2, `window.platformControls.openExternal` (existing, `renderer/platform.js`), `window.capacitorApp.App` (Task 2's vendored file, only present when `window.Capacitor` exists).
+- Consumes: `window.authBridge.onDeepLink` (Task 1), the DOM elements from Task 2, `window.platformControls.openExternal` (existing, `renderer/platform.js`), `window.Capacitor.addListener` (Capacitor's native-bridge primitive, only present when `window.Capacitor` exists — i.e. running inside the native iOS build, not Electron/web).
 - Produces: `supabaseClient` (moved here from `renderer/rooms.js` — Task 4 removes the duplicate declaration there), `getSession()` → `Promise<Session|null>`, `isRealSession(session)` → `boolean`. Task 4 consumes `getSession()` from `renderer/rooms.js` and `renderer/app.js`.
 
 - [ ] **Step 1: Write `renderer/auth.js`**
@@ -512,8 +500,8 @@ if (window.authBridge) {
   window.authBridge.onDeepLink(handleAuthCallbackUrl)
 }
 
-if (window.Capacitor && window.capacitorApp) {
-  window.capacitorApp.App.addListener('appUrlOpen', function (data) {
+if (window.Capacitor) {
+  window.Capacitor.addListener('App', 'appUrlOpen', function (data) {
     handleAuthCallbackUrl(data.url)
   })
 }
@@ -527,7 +515,7 @@ getSession().then(function (session) {
 
 `elBtnGoogle`/`elBtnSignOut` are referenced without a `typeof`/null guard because Task 2 already created both elements unconditionally in `renderer/index.html`, and `auth.js` loads after that markup exists in the DOM (script tags execute after the DOM nodes above them have already been parsed) — this matches the existing convention elsewhere in this codebase (e.g. `renderer/app.js`'s `elBtnStart` DOM refs are never null-guarded either, for the same reason.
 
-The `window.authBridge` guard covers Capacitor/web, where that global is never defined (only Electron's `preload.js` sets it). The `window.Capacitor && window.capacitorApp` guard covers Electron/web, where neither exists.
+The `window.authBridge` guard covers Capacitor/web, where that global is never defined (only Electron's `preload.js` sets it). The `window.Capacitor` guard covers Electron/web, where that global doesn't exist — `window.Capacitor.addListener('App', 'appUrlOpen', callback)` is Capacitor's native-bridge primitive (confirmed directly in `@capacitor/ios`'s shipped `native-bridge.js`, the actual script iOS injects before this app's own scripts run — see the corrected Global Constraints note above), the exact sibling of `renderer/platform.js`'s existing `window.Capacitor.nativePromise('Browser', 'open', { url })` call. No `@capacitor/app` dependency and no vendored plugin file are needed.
 
 - [ ] **Step 2: Manual verification**
 
