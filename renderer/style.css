@@ -284,11 +284,18 @@ body.dark {
   right: 14px;
   background: transparent;
   border: none;
-  font-size: 20px;
+  padding: 0;
   cursor: pointer;
   opacity: 0.4;
   transition: opacity 0.15s;
   -webkit-app-region: no-drag;
+}
+
+.btn-settings img,
+.btn-room img {
+  width: 20px;
+  height: 20px;
+  display: block;
 }
 
 .btn-settings:hover {
@@ -301,7 +308,7 @@ body.dark {
   right: 44px;
   background: transparent;
   border: none;
-  font-size: 20px;
+  padding: 0;
   cursor: pointer;
   opacity: 0.4;
   transition: opacity 0.15s;
