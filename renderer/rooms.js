@@ -14,8 +14,7 @@ elBtnRoomClose.addEventListener('click', function () {
 })
 
 // ── Supabase client ─────────────────────────────
-
-var supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY)
+// supabaseClient is created once in renderer/auth.js, which loads earlier.
 
 // ── Room state ──────────────────────────────────
 
@@ -55,20 +54,6 @@ elInputNickname.value = localStorage.getItem('room-nickname') || ''
 function getNickname() {
   var name = elInputNickname.value.trim()
   return name || 'Anonymous'
-}
-
-// ── Auth bootstrap ──────────────────────────────
-
-function ensureAnonSession() {
-  return supabaseClient.auth.getSession().then(function (result) {
-    if (result.data.session) return result.data.session
-    return supabaseClient.auth.signInAnonymously().then(function (signInResult) {
-      if (signInResult.error || !signInResult.data.session) {
-        throw signInResult.error || new Error('No session returned')
-      }
-      return signInResult.data.session
-    })
-  })
 }
 
 // ── Errors ───────────────────────────────────────
@@ -364,7 +349,7 @@ function enterRoom(row) {
 
 elBtnRoomCreate.addEventListener('click', function () {
   clearRoomError()
-  ensureAnonSession().then(function (session) {
+  getSession().then(function (session) {
     return ensureRoomAccess(session.user.id).then(function (allowed) {
       if (!allowed) return
       var code = generateJoinCode()
@@ -385,7 +370,7 @@ elBtnRoomJoin.addEventListener('click', function () {
   clearRoomError()
   var code = elInputJoinCode.value.trim().toUpperCase()
   if (!code) return
-  ensureAnonSession().then(function (session) {
+  getSession().then(function (session) {
     return ensureRoomAccess(session.user.id).then(function (allowed) {
       if (!allowed) return
       return supabaseClient.from('rooms').select().eq('join_code', code).single().then(function (result) {

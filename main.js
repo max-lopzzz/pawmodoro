@@ -2,6 +2,31 @@ const { app, BrowserWindow, ipcMain, shell } = require('electron')
 const path = require('path')
 
 let win
+let pendingDeepLink = null
+
+app.setAsDefaultProtocolClient('pawmodoro')
+
+app.on('open-url', (event, url) => {
+  event.preventDefault()
+  if (win && !win.isDestroyed() && !win.webContents.isLoading()) {
+    win.webContents.send('auth-deep-link', url)
+    win.show()
+    win.focus()
+  } else if (win && !win.isDestroyed()) {
+    win.webContents.once('did-finish-load', () => {
+      win.webContents.send('auth-deep-link', url)
+      win.show()
+      win.focus()
+    })
+  } else {
+    pendingDeepLink = url
+    // A cold launch via the pawmodoro:// scheme can deliver open-url before
+    // app.whenReady() resolves — creating a BrowserWindow that early throws.
+    // In that case, leave it to the existing app.whenReady().then(createWindow)
+    // below, which already picks up pendingDeepLink once the app is ready.
+    if (app.isReady()) createWindow()
+  }
+})
 
 function createWindow() {
   win = new BrowserWindow({
@@ -19,6 +44,13 @@ function createWindow() {
     }
   })
   win.loadFile('renderer/index.html')
+  if (pendingDeepLink) {
+    const deferredUrl = pendingDeepLink
+    pendingDeepLink = null
+    win.webContents.once('did-finish-load', () => {
+      win.webContents.send('auth-deep-link', deferredUrl)
+    })
+  }
 }
 
 app.whenReady().then(() => {
