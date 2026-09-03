@@ -22,5 +22,8 @@
   },
   "jest": {
     "testEnvironment": "node"
+  },
+  "dependencies": {
+    "@capacitor/app": "^8.1.1"
   }
 }

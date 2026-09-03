@@ -2,6 +2,10 @@
 
 var supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY)
 
+var AUTH_REDIRECT = (window.Capacitor || window.authBridge)
+  ? 'pawmodoro://auth-callback'
+  : window.location.origin + '/'
+
 // ── DOM refs ──────────────────────────────────────
 
 var elAuthError  = document.getElementById('auth-error')
@@ -42,32 +46,44 @@ function clearAuthError() {
 
 function signInWithGoogle() {
   clearAuthError()
+  elBtnGoogle.disabled = true
   supabaseClient.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: 'pawmodoro://auth-callback', skipBrowserRedirect: true }
+    options: { redirectTo: AUTH_REDIRECT, skipBrowserRedirect: true }
   }).then(function (result) {
     if (result.error || !result.data.url) {
       showAuthError('Could not start sign-in. Try again.')
+      elBtnGoogle.disabled = false
       return
     }
     window.platformControls.openExternal(result.data.url)
+    elBtnGoogle.disabled = false
+  }).catch(function () {
+    showAuthError('Could not start sign-in. Try again.')
+    elBtnGoogle.disabled = false
   })
 }
 
 function handleAuthCallbackUrl(url) {
-  var code
+  var parsed
   try {
-    code = new URL(url).searchParams.get('code')
+    parsed = new URL(url)
   } catch (e) {
     return
   }
+  var oauthError = parsed.searchParams.get('error_description') || parsed.searchParams.get('error')
+  if (oauthError) {
+    showAuthError(oauthError)
+    return
+  }
+  var code = parsed.searchParams.get('code')
   if (!code) return
   supabaseClient.auth.exchangeCodeForSession(code).then(function (result) {
     if (result.error || !isRealSession(result.data.session)) {
       showAuthError('Sign-in failed. Try again.')
-      return
     }
-    showApp()
+  }).catch(function () {
+    showAuthError('Sign-in failed. Try again.')
   })
 }
 
@@ -76,8 +92,8 @@ elBtnGoogle.addEventListener('click', signInWithGoogle)
 // ── Sign out ──────────────────────────────────────
 
 function signOut() {
-  supabaseClient.auth.signOut().then(function () {
-    showAuthGate()
+  supabaseClient.auth.signOut().catch(function () {}).then(function () {
+    location.reload()
   })
 }
 
@@ -95,8 +111,16 @@ if (window.Capacitor) {
   })
 }
 
-// ── Boot ──────────────────────────────────────────
+// ── Auth state ────────────────────────────────────
 
-getSession().then(function (session) {
-  if (isRealSession(session)) showApp()
+supabaseClient.auth.onAuthStateChange(function (event, session) {
+  if (event === 'SIGNED_OUT') {
+    location.reload()
+    return
+  }
+  if (isRealSession(session)) {
+    showApp()
+  } else {
+    showAuthGate()
+  }
 })

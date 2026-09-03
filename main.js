@@ -8,14 +8,19 @@ app.setAsDefaultProtocolClient('pawmodoro')
 
 app.on('open-url', (event, url) => {
   event.preventDefault()
-  if (win && !win.webContents.isLoading()) {
+  if (win && !win.isDestroyed() && !win.webContents.isLoading()) {
     win.webContents.send('auth-deep-link', url)
-  } else if (win) {
+    win.show()
+    win.focus()
+  } else if (win && !win.isDestroyed()) {
     win.webContents.once('did-finish-load', () => {
       win.webContents.send('auth-deep-link', url)
+      win.show()
+      win.focus()
     })
   } else {
     pendingDeepLink = url
+    createWindow()
   }
 })
 
