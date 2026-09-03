@@ -8,6 +8,16 @@
 </head>
 <body>
 
+  <div class="auth-view" id="auth-view">
+    <div class="auth-box">
+      <img class="auth-mascot" src="../assets/Cat Idle.gif" alt="">
+      <div class="auth-title">Pawmodoro</div>
+      <div class="auth-subtitle">Sign in to get started</div>
+      <button class="btn-sign-in-google" id="btn-sign-in-google" type="button">Sign in with Google</button>
+      <div class="auth-error" id="auth-error"></div>
+    </div>
+  </div>
+
   <div class="titlebar">
     <div class="titlebar-drag"></div>
     <div class="titlebar-controls">
@@ -82,6 +92,7 @@
       </div>
     </div>
     <button class="btn-save" id="btn-save">Save</button>
+    <button class="btn-sign-out" id="btn-sign-out" type="button">Sign Out</button>
   </div>
 
   <div class="room-panel" id="room-panel">
@@ -118,7 +129,9 @@
   <script src="supabase.js"></script>
   <script src="revenuecat-config.js"></script>
   <script src="purchases.js"></script>
+  <script src="capacitor-app.js"></script>
   <script src="platform.js"></script>
+  <script src="auth.js"></script>
   <script src="app.js"></script>
   <script src="todo.js"></script>
   <script src="monetization.js"></script>
