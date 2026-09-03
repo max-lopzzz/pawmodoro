@@ -20,7 +20,11 @@ app.on('open-url', (event, url) => {
     })
   } else {
     pendingDeepLink = url
-    createWindow()
+    // A cold launch via the pawmodoro:// scheme can deliver open-url before
+    // app.whenReady() resolves — creating a BrowserWindow that early throws.
+    // In that case, leave it to the existing app.whenReady().then(createWindow)
+    // below, which already picks up pendingDeepLink once the app is ready.
+    if (app.isReady()) createWindow()
   }
 })
 
