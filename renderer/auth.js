@@ -1,18 +1,19 @@
-// ── Supabase client ──────────────────────────────
+var supabaseClient = window.supabase.createClient(
+  window.SUPABASE_URL,
+  window.SUPABASE_ANON_KEY
+)
 
-var supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY)
+// ── DOM refs ─────────────────────────────────────
 
-var AUTH_REDIRECT = (window.Capacitor || window.authBridge)
-  ? 'pawmodoro://auth-callback'
-  : window.location.origin + '/'
-
-// ── DOM refs ──────────────────────────────────────
-
-var elAuthError  = document.getElementById('auth-error')
-var elBtnGoogle  = document.getElementById('btn-sign-in-google')
+var elAuthError = document.getElementById('auth-error')
+var elAuthForm = document.getElementById('auth-form')
+var elEmail = document.getElementById('auth-email')
+var elPassword = document.getElementById('auth-password')
+var elBtnSignIn = document.getElementById('btn-sign-in')
+var elBtnCreateAccount = document.getElementById('btn-create-account')
 var elBtnSignOut = document.getElementById('btn-sign-out')
 
-// ── Session ───────────────────────────────────────
+// ── Session ──────────────────────────────────────
 
 function isRealSession(session) {
   return !!(session && session.user && !session.user.is_anonymous)
@@ -42,82 +43,167 @@ function clearAuthError() {
   elAuthError.textContent = ''
 }
 
+// ── Buttons ───────────────────────────────────────
+
+function setAuthButtonsDisabled(disabled) {
+  elBtnSignIn.disabled = disabled
+  elBtnCreateAccount.disabled = disabled
+}
+
 // ── Sign in ───────────────────────────────────────
 
-function signInWithGoogle() {
+function signIn() {
   clearAuthError()
-  elBtnGoogle.disabled = true
-  supabaseClient.auth.signInWithOAuth({
-    provider: 'google',
-    options: { redirectTo: AUTH_REDIRECT, skipBrowserRedirect: true }
+
+  var email = elEmail.value.trim()
+  var password = elPassword.value
+
+  if (!email || !password) {
+    showAuthError('Please enter your email and password.')
+    return
+  }
+
+  setAuthButtonsDisabled(true)
+
+  supabaseClient.auth.signInWithPassword({
+    email: email,
+    password: password
   }).then(function (result) {
-    if (result.error || !result.data.url) {
-      showAuthError('Could not start sign-in. Try again.')
-      elBtnGoogle.disabled = false
+    if (result.error) {
+      showAuthError(result.error.message)
+      setAuthButtonsDisabled(false)
       return
     }
-    window.platformControls.openExternal(result.data.url)
-    elBtnGoogle.disabled = false
-  }).catch(function () {
-    showAuthError('Could not start sign-in. Try again.')
-    elBtnGoogle.disabled = false
-  })
-}
 
-function handleAuthCallbackUrl(url) {
-  var parsed
-  try {
-    parsed = new URL(url)
-  } catch (e) {
-    return
-  }
-  var oauthError = parsed.searchParams.get('error_description') || parsed.searchParams.get('error')
-  if (oauthError) {
-    showAuthError(oauthError)
-    return
-  }
-  var code = parsed.searchParams.get('code')
-  if (!code) return
-  supabaseClient.auth.exchangeCodeForSession(code).then(function (result) {
-    if (result.error || !isRealSession(result.data.session)) {
+    if (!isRealSession(result.data.session)) {
       showAuthError('Sign-in failed. Try again.')
+      setAuthButtonsDisabled(false)
     }
   }).catch(function () {
-    showAuthError('Sign-in failed. Try again.')
+    showAuthError('Could not sign in. Try again.')
+    setAuthButtonsDisabled(false)
   })
 }
 
-elBtnGoogle.addEventListener('click', signInWithGoogle)
+// ── Create account ───────────────────────────────
 
-// ── Sign out ──────────────────────────────────────
+function createAccount() {
+  clearAuthError()
 
-function signOut() {
+  var email = elEmail.value.trim()
+  var password = elPassword.value
+
+  if (!email || !password) {
+    showAuthError('Please enter your email and password.')
+    return
+  }
+
+  if (password.length < 6) {
+    showAuthError('Password must be at least 6 characters.')
+    return
+  }
+
+  setAuthButtonsDisabled(true)
+
+  supabaseClient.auth.signUp({
+    email: email,
+    password: password,
+    options: {
+      emailRedirectTo: 'pawmodoro://auth-callback'
+    }
+  }).then(function (result) {
+    if (result.error) {
+      showAuthError(result.error.message)
+      setAuthButtonsDisabled(false)
+      return
+    }
+
+    if (isRealSession(result.data.session)) {
+      return
+    }
+
+    showAuthError('Account created. Check your email to confirm your account.')
+    setAuthButtonsDisabled(false)
+  }).catch(function () {
+    showAuthError('Could not create account. Try again.')
+    setAuthButtonsDisabled(false)
+  })
+}
+
+elAuthForm.addEventListener('submit', function (event) {
+  event.preventDefault()
+  signIn()
+})
+
+elBtnCreateAccount.addEventListener('click', createAccount)
+
+// ── Sign out ─────────────────────────────────────
+
+elBtnSignOut.addEventListener('click', function () {
   supabaseClient.auth.signOut().catch(function () {}).then(function () {
     location.reload()
   })
-}
+})
 
-elBtnSignOut.addEventListener('click', signOut)
+// ── Email confirmation deep link ────────────────
 
-// ── Deep link listeners ───────────────────────────
+function handleAuthCallbackUrl(url) {
+  if (!url) return
 
-if (window.authBridge) {
-  window.authBridge.onDeepLink(handleAuthCallbackUrl)
-}
+  var parsed
 
-if (window.Capacitor) {
-  window.Capacitor.addListener('App', 'appUrlOpen', function (data) {
-    handleAuthCallbackUrl(data.url)
+  try {
+    parsed = new URL(url)
+  } catch (error) {
+    return
+  }
+
+  if (parsed.protocol !== 'pawmodoro:') return
+  if (parsed.hostname !== 'auth-callback') return
+
+  var hash = parsed.hash ? parsed.hash.substring(1) : ''
+  var params = new URLSearchParams(hash)
+
+  var accessToken = params.get('access_token')
+  var refreshToken = params.get('refresh_token')
+
+  if (!accessToken || !refreshToken) {
+    showAuthError('Email confirmation failed. Please try again.')
+    return
+  }
+
+  supabaseClient.auth.setSession({
+    access_token: accessToken,
+    refresh_token: refreshToken
+  }).then(function (result) {
+    if (result.error) {
+      showAuthError('Email confirmation failed. Please try again.')
+      return
+    }
+
+    if (isRealSession(result.data.session)) {
+      clearAuthError()
+      showApp()
+    } else {
+      showAuthError('Email confirmation failed. Please try again.')
+    }
+  }).catch(function () {
+    showAuthError('Email confirmation failed. Please try again.')
   })
 }
 
-// ── Auth state ────────────────────────────────────
+if (window.authBridge && typeof window.authBridge.onDeepLink === 'function') {
+  window.authBridge.onDeepLink(handleAuthCallbackUrl)
+}
+
+// ── Auth state ───────────────────────────────────
 
 supabaseClient.auth.onAuthStateChange(function (event, session) {
   if (event === 'SIGNED_OUT') {
     location.reload()
     return
   }
+
   if (isRealSession(session)) {
     showApp()
   } else {

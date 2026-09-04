@@ -804,6 +804,7 @@ body.signed-in .auth-view {
   align-items: center;
   gap: 10px;
   text-align: center;
+  width: min(320px, calc(100vw - 40px));
 }
 
 .auth-mascot {
@@ -824,10 +825,34 @@ body.signed-in .auth-view {
   margin-bottom: 10px;
 }
 
-.btn-sign-in-google {
+.auth-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.auth-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  background: var(--white);
+  color: var(--black);
+  border: 1px solid var(--black);
+  font-family: inherit;
+  font-size: 14px;
+  border-radius: 6px;
+  outline: none;
+}
+
+.auth-input:focus {
+  box-shadow: 0 0 0 2px var(--black);
+}
+
+.btn-sign-in,
+.btn-create-account {
+  width: 100%;
   padding: 10px 28px;
-  background: var(--black);
-  color: var(--white);
   border: none;
   font-family: 'MorningBreeze', sans-serif;
   font-size: 16px;
@@ -836,17 +861,37 @@ body.signed-in .auth-view {
   transition: opacity 0.15s;
 }
 
-.btn-sign-in-google:hover {
+.btn-sign-in {
+  background: var(--black);
+  color: var(--white);
+}
+
+.btn-create-account {
+  background: transparent;
+  color: var(--black);
+  border: 1px solid var(--black);
+}
+
+.btn-sign-in:hover,
+.btn-create-account:hover {
   opacity: 0.85;
+}
+
+.btn-sign-in:disabled,
+.btn-create-account:disabled {
+  opacity: 0.5;
+  cursor: default;
 }
 
 .auth-error {
   color: var(--red);
   font-size: 12px;
   min-height: 16px;
+  max-width: 320px;
 }
 
 /* ── Room panel ───────────────────────────────── */
+
 
 .room-panel {
   position: fixed;

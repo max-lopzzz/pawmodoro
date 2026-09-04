@@ -13,7 +13,35 @@
       <img class="auth-mascot" src="../assets/Cat Idle.gif" alt="">
       <div class="auth-title">Pawmodoro</div>
       <div class="auth-subtitle">Sign in to get started</div>
-      <button class="btn-sign-in-google" id="btn-sign-in-google" type="button">Sign in with Google</button>
+
+      <form class="auth-form" id="auth-form">
+        <input
+          class="auth-input"
+          id="auth-email"
+          type="email"
+          placeholder="Email"
+          autocomplete="email"
+          required
+        >
+
+        <input
+          class="auth-input"
+          id="auth-password"
+          type="password"
+          placeholder="Password"
+          autocomplete="current-password"
+          required
+        >
+
+        <button class="btn-sign-in" id="btn-sign-in" type="submit">
+          Sign In
+        </button>
+
+        <button class="btn-create-account" id="btn-create-account" type="button">
+          Create Account
+        </button>
+      </form>
+
       <div class="auth-error" id="auth-error"></div>
     </div>
   </div>
